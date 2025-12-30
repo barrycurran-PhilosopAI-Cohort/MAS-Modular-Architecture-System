@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barry's Image Suite</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1e293b; /* Darker background for a professional look */
+        }
+        .drag-drop-area {
+            border: 3px dashed #6366f1; /* Indigo border */
+            background-color: #334155; /* Slate background */
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        .drag-drop-area.highlight {
+            border-color: #4ade80; /* Green highlight */
+            background-color: #1e40af; /* Darker blue when highlighted */
+        }
+        /* Custom scrollbar style for the text area */
+        #promptInput {
+            resize: vertical;
+        }
+        /* Style for the button while generating */
+        .loading-pulse {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        /* Dynamic Aspect Ratio Classes for Image Container */
+        /* 9:16 Vertical (Mobile) - NOTE: This class is only used for the edit/standard 9:16 mode, not the new letterbox mode */
+        .aspect-9-16 { 
+            aspect-ratio: 9 / 16; 
+            max-height: 80vh; 
+            margin-left: auto; 
+            margin-right: auto; 
+            max-width: 400px; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); /* Stronger shadow for mobile feel */
+        }
+        /* 16:9 Widescreen - Reverted for visual consistency, though content is now prompt-driven */
+        .aspect-16-9 { 
+            aspect-ratio: 16 / 9; 
+            max-width: 100%;
+            margin-left: auto; 
+            margin-right: auto; 
+        }
+        /* 1:1 Square (Used for Letterbox composition display and standard editing) */
+        .aspect-1-1 { 
+            aspect-ratio: 1 / 1; 
+            max-width: 600px; 
+            margin-left: auto; 
+            margin-right: auto; 
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+    <div class="max-w-4xl mx-auto space-y-8">
+        <header class="text-center py-4 rounded-xl bg-indigo-600 shadow-2xl">
+            <h1 class="text-4xl font-extrabold text-white tracking-tight">Barry's Image Suite</h1>
+            <p class="text-indigo-200 mt-1">AI-Powered Image Generation and Editing</p>
+        </header>
+
+        <!-- Image Generation Section -->
+        <section class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Image Generation</h2>
+
+            <!-- Image Output and Drag-Drop Zone - Default to 1:1 Aspect Ratio -->
+            <div id="imageDisplayContainer" class="relative w-full aspect-1-1 bg-gray-100 rounded-xl overflow-hidden shadow-inner mb-6 transition-all duration-300">
+                <!-- Drop Zone -->
+                <div id="dropZone" class="drag-drop-area absolute inset-0 flex flex-col items-center justify-center p-4 cursor-pointer text-gray-400 text-center transition duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mb-2 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <p id="placeholderText" class="font-semibold">Drag & drop an image here or click to upload</p>
+                    <p class="text-sm mt-1">(For Image Editing only)</p>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" class="hidden">
+
+                <!-- Generated/Uploaded Image -->
+                <img id="generatedImage" src="" alt="Generated/Edited Image" class="w-full h-full object-contain hidden">
+
+                <!-- Loading Spinner -->
+                <div id="loadingIndicator" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+                    <svg class="animate-spin h-10 w-10 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Status Message -->
+            <p id="statusMessage" class="text-sm text-center text-gray-600 mb-4 h-5">Enter a prompt and select a generation mode!</p>
+
+            <!-- Prompt Input -->
+            <textarea id="promptInput" rows="3" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-500 shadow-sm" placeholder="Describe the image you want to create (e.g., 'A majestic lion wearing a space helmet, digital art, 4k')."></textarea>
+
+            <!-- Action Buttons -->
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- 9:16 LETTERBOX BUTTON (UPDATED LOGIC) -->
+                <button id="generate916Button" class="w-full bg-orange-300 hover:bg-orange-400 text-gray-900 font-semibold py-3 px-6 rounded-xl transition duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-orange-500 focus:ring-opacity-50">
+                    Generate 9:16 Image (Vertical)
+                </button>
+
+                <!-- 16:9 LETTERBOX BUTTON -->
+                <button id="generate169LetterboxButton" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-xl transition duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-gray-500 focus:ring-opacity-50">
+                    Generate 16:9 Image (Widescreen)
+                </button>
+
+                <!-- Existing Edit Button -->
+                <button id="editButton" class="w-full bg-green-500 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition duration-200 shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50" disabled>
+                    Edit Photo (Image-to-Image)
+                </button>
+            </div>
+
+            <!-- Download and Clear Button Group -->
+            <div class="mt-6 text-center space-x-4">
+                <button id="downloadImageButton" class="bg-gray-700 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded-lg hidden transition duration-200" title="Download the generated image">
+                    <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Download Image
+                </button>
+                <button id="clearImageButton" class="bg-red-500 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg hidden transition duration-200" title="Clear the current image and reset the editor">
+                    Clear Image
+                </button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Message Box for Alerts (No alert() function is used) -->
+    <div id="messageBox" class="fixed bottom-4 right-4 bg-red-600 text-white p-4 rounded-lg shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-50"></div>
+
+    <script>
+        // --- API CONFIGURATION (Uses the correct, robust endpoint) ---
+        const apiKey = ""; 
+        const GEMINI_IMAGE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
+
+        // --- DOM Elements ---
+        const promptInput = document.getElementById('promptInput');
+        const dropZone = document.getElementById('dropZone');
+        const imageInput = document.getElementById('imageInput');
+        const generatedImage = document.getElementById('generatedImage');
+        const placeholderText = document.getElementById('placeholderText');
+        const statusMessage = document.getElementById('statusMessage');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const generate916Button = document.getElementById('generate916Button');
+        // Updated to new ID for the letterbox button
+        const generate169LetterboxButton = document.getElementById('generate169LetterboxButton'); 
+        const editButton = document.getElementById('editButton');
+        const downloadImageButton = document.getElementById('downloadImageButton');
+        const clearImageButton = document.getElementById('clearImageButton'); 
+        const imageDisplayContainer = document.getElementById('imageDisplayContainer');
+
+        // --- State Variables ---
+        let uploadedImageBase64 = null;
+        let isProcessing = false;
+
+        // --- Utility Functions ---
+
+        /**
+         * Custom message box (replaces alert()).
+         * @param {string} message - The message to display.
+         * @param {string} type - 'success' or 'error'.
+         */
+        function showMessage(message, type = 'error') {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+            messageBox.className = `fixed bottom-4 right-4 text-white p-4 rounded-lg shadow-2xl transition-opacity duration-300 opacity-100 z-50 ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+
+            setTimeout(() => {
+                messageBox.classList.add('opacity-0');
+                // Allow CSS transition to complete before removing pointer events
+                setTimeout(() => { messageBox.classList.remove('pointer-events-auto'); }, 300); 
+            }, 5000);
+        }
+        
+        /**
+         * Dynamically updates the container's aspect ratio class.
+         * @param {string} ratio - The desired aspect ratio ("9:16", "16:9", or "1:1").
+         */
+        function updateContainerRatio(ratio) {
+            // Remove all specific ratio classes first
+            imageDisplayContainer.classList.remove('aspect-9-16', 'aspect-16-9', 'aspect-1-1');
+
+            if (ratio === "9:16") {
+                imageDisplayContainer.classList.add('aspect-9-16');
+            } else if (ratio === "16:9") {
+                imageDisplayContainer.classList.add('aspect-16-9');
+            } else {
+                imageDisplayContainer.classList.add('aspect-1-1');
+            }
+        }
+
+        /**
+         * Resets the UI to the initial state (no image displayed).
+         */
+        function clearImage() {
+            uploadedImageBase64 = null;
+            generatedImage.src = "";
+            generatedImage.classList.add('hidden');
+            placeholderText.classList.remove('hidden');
+            dropZone.classList.remove('hidden'); 
+            editButton.disabled = true; 
+            downloadImageButton.classList.add('hidden');
+            clearImageButton.classList.add('hidden');
+            statusMessage.textContent = 'Enter a prompt and select a generation mode!';
+            updateContainerRatio("1:1");
+        }
+
+        function setProcessingState(state) {
+            isProcessing = state;
+            generate916Button.disabled = state;
+            generate169LetterboxButton.disabled = state; 
+            editButton.disabled = state || !uploadedImageBase64; 
+
+            const buttons = [generate916Button, generate169LetterboxButton, editButton];
+
+            if (state) {
+                loadingIndicator.classList.remove('hidden');
+                buttons.forEach(btn => btn.classList.add('loading-pulse'));
+                statusMessage.textContent = uploadedImageBase64 ? 'Editing image, please wait...' : 'Generating image, please wait...';
+            } else {
+                loadingIndicator.classList.add('hidden');
+                buttons.forEach(btn => btn.classList.remove('loading-pulse'));
+                if (statusMessage.textContent.includes('wait...')) {
+                    statusMessage.textContent = uploadedImageBase64 ? 'Photo ready for editing or generation.' : 'Enter a prompt and select a generation mode!';
+                }
+            }
+        }
+
+        // --- Core Image Processing Function ---
+
+        async function processImage(isEdit, aspectRatio = "1:1", promptPrefix = "") {
+            const userPrompt = promptInput.value.trim();
+            if (!userPrompt) {
+                showMessage("Please enter a descriptive prompt.");
+                return;
+            }
+            
+            const finalPrompt = promptPrefix + userPrompt;
+
+            if (isEdit && !uploadedImageBase64) {
+                showMessage("Cannot edit: Please drag and drop or upload an image first.");
+                return;
+            }
+
+            setProcessingState(true);
+            updateContainerRatio(aspectRatio); 
+            downloadImageButton.classList.add('hidden'); 
+
+            // Construct the content parts array
+            const contentsParts = [{ text: finalPrompt }];
+            
+            if (isEdit && uploadedImageBase64) {
+                contentsParts.push({
+                    inlineData: {
+                        mimeType: "image/png", 
+                        data: uploadedImageBase64
+                    }
+                });
+            }
+
+            const payload = {
+                contents: [{ parts: contentsParts }],
+                generationConfig: {
+                    responseModalities: ['TEXT', 'IMAGE'], 
+                },
+            };
+
+            const maxRetries = 3;
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    const response = await fetch(GEMINI_IMAGE_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status === 429 && attempt < maxRetries - 1) {
+                        const delay = Math.pow(2, attempt) * 1000;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        continue;
+                    }
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`API Request Failed: ${response.status} (${response.statusText}). Response: ${errorText.substring(0, 200)}...`);
+                    }
+
+                    const result = await response.json();
+                    
+                    const imagePart = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData && p.inlineData.mimeType.startsWith('image/'));
+                    const base64Data = imagePart?.inlineData?.data;
+
+                    if (base64Data) {
+                        const mimeType = imagePart.inlineData.mimeType;
+                        const imageUrl = `data:${mimeType};base64,${base64Data}`;
+
+                        generatedImage.src = imageUrl;
+                        generatedImage.classList.remove('hidden');
+                        placeholderText.classList.add('hidden');
+                        dropZone.classList.add('hidden'); 
+                        
+                        statusMessage.textContent = isEdit ? 'Image successfully edited!' : 'Image successfully generated!';
+                        showMessage('Success! Image is ready.', 'success');
+
+                        // Update download link and show buttons
+                        downloadImageButton.href = imageUrl;
+                        downloadImageButton.download = isEdit ? 'edited_image.png' : 'generated_image_letterbox.png';
+                        downloadImageButton.classList.remove('hidden');
+                        clearImageButton.classList.remove('hidden');
+
+                    } else {
+                        console.warn("API response was successful but did not contain expected image data.", result);
+                        throw new Error("API response did not contain a valid image. Try adjusting the prompt or check the console.");
+                    }
+                    break; 
+
+                } catch (error) {
+                    console.error("Image generation error:", error);
+                    statusMessage.textContent = `Error: API call failed. Check console for details.`;
+                    showMessage(`Image operation failed. Error details: ${error.message.substring(0, 100)}...`, 'error');
+                }
+            }
+            setProcessingState(false);
+        }
+
+        // --- File Upload / Drag & Drop Logic ---
+
+        function handleImageFile(file) {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64String = reader.result.split(',')[1];
+                    uploadedImageBase64 = base64String;
+
+                    // Display the uploaded image
+                    generatedImage.src = reader.result;
+                    generatedImage.classList.remove('hidden');
+                    placeholderText.classList.add('hidden');
+                    dropZone.classList.add('hidden'); 
+                    
+                    updateContainerRatio("1:1"); 
+
+                    // Update UI state
+                    editButton.disabled = false;
+                    statusMessage.textContent = 'Photo uploaded! Enter a prompt and click "Edit Photo" to modify it, or select a generation ratio.';
+                    downloadImageButton.classList.add('hidden'); 
+                    clearImageButton.classList.remove('hidden'); 
+
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showMessage('Please select a valid image file (PNG, JPEG).');
+            }
+        }
+
+        // Click on drop zone opens file dialog
+        dropZone.addEventListener('click', () => {
+            if (!isProcessing) imageInput.click();
+        });
+
+        // File input change handler
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            handleImageFile(file);
+        });
+
+        // Drag events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('highlight'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('highlight'), false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleImageFile(files[0]);
+        }, false);
+
+        // --- Event Listeners for Buttons ---
+
+        // 9:16 Vertical Letterbox Generation Button (UPDATED LOGIC)
+        generate916Button.addEventListener('click', () => {
+            // This prompt forces the model to create the vertical letterboxing effect inside a square output.
+            const verticalLetterboxPrompt = "Generate a single 1:1 square image composition. The main subject must be rendered in a 9:16 vertical rectangle in the center. The area to the left of this rectangle must be a solid black vertical column with the white text 'free space' written vertically top-to-bottom. The area to the right of this rectangle must be a solid black vertical column with the white text 'free space' written vertically top-to-bottom. ";
+            
+            // We force the container to 1:1 because the final generated image file will be 1:1.
+            processImage(false, "1:1", verticalLetterboxPrompt); 
+        });
+
+        // 16:9 Letterbox Generation Button (Horizontal Letterbox)
+        generate169LetterboxButton.addEventListener('click', () => {
+            // This prompt forces the model to create the letterboxing effect inside a square output.
+            const letterboxPrompt = "Generate a single 1:1 square image composition. The main subject must be rendered in a 16:9 horizontal rectangle in the center. The area above this rectangle must be a solid black bar with the centered white text: 'Saffron Cucus Crocus'. The area below this rectangle must be a solid black bar with the centered white text: '8 weeks growth'. ";
+            
+            // We force the container to 1:1 because the final generated image file will be 1:1.
+            processImage(false, "1:1", letterboxPrompt); 
+        });
+
+        // Edit Photo Button
+        editButton.addEventListener('click', () => {
+            processImage(true, "1:1", "Perform an image-to-image edit based on the attached photo and the user's prompt: "); 
+        });
+
+        // Clear Image Button Listener
+        clearImageButton.addEventListener('click', clearImage);
+
+        // Initialize state when page loads
+        window.onload = () => {
+             updateContainerRatio("1:1");
+             clearImage(); 
+        };
+
+    </script>
+</body>
+</html>
