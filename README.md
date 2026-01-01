@@ -41,7 +41,7 @@ To initialize the MAS environment in your LLM workspace:
 
 Mount the Kernel: Upload MAS_Core_Kernel_V3_1_2.md.
 
-Mount the Manual: Render MAS_TECH_MANUAL_V2_4_1.md.
+Mount the Index: Upload MAS_Master_Index_V2_7.md.
 
 Run Initialization: Input the Scroll Key command: RUN.
 
