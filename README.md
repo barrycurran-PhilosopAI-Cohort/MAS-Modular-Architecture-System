@@ -1,57 +1,58 @@
-Modular Architecture System (MAS) — V2.7.0
+Modular Abstraction System (MAS) | Evolution of the V2.7 Framework
 
-The Sovereign State: A Deterministic Governance Framework for LLMs
-
-Version: 2.7.0 (Authoritative Release Candidate)
+V4.0.1-BETA: The Axonal Bridge & Temporal Sync Release
 
 Author: Barry M. Curran
 
-Platform: Optimized for Google Gemini 2.0 (Canvas) & Claude 3.5 (Artifacts)
-
 License: CC BY-NC-SA 4.0
 
-1. Executive Summary
+Status: HIGH-PERFORMANCE EVOLUTION / RELEASE CANDIDATE
 
-The Modular Architecture System (MAS) is a professional-grade architectural framework designed to enforce Human-in-the-Loop (HITL) Sovereignty. It provides a definitive solution to the primary failure points of modern AI interaction: Agentic Drift and Neural Bleed.
+🛡️ The Executive Vision: AI Sovereignty
+
+The Modular Abstraction System (MAS) is a professional-grade architectural framework designed to enforce Human-in-the-Loop (HITL) Sovereignty. It provides a definitive solution to the primary failure points of modern AI interaction: Agentic Drift and Neural Bleed.
 
 By employing a Cold-Swap Architecture, MAS transforms the LLM from an unpredictable chatbot into a deterministic, file-driven execution environment.
 
-2. Core Architectural Pillars
+🧠 The V4 Breakthrough: Solving the "Neural Disconnect"
 
-The Ghost-Kill Rule: To maintain "Neural Purity," every module update requires a unique version identifier. We never edit; we replace.
+While the original MAS V2.7 established the "Gold Standard" for state management, the V4.0.1 Release introduces the Axonal Bridge Protocol. This update specifically targets the "Split-Brain" syndrome in LLMs—where the AI's synthesis drifts away from the Operator's original intent.
 
-The Verification Casket (Rule 4): No high-impact system change occurs without an explicit "YES" from the Operator.
+V2.7 (Classic): The complete, foundation-layer architecture found in the /MAS_V2_7_Classic/ directory.
 
-Inert Data Protocol (Rule 7): Data remains "Inert" and un-interacted with until explicitly summoned via a Scroll Key command.
+V4.0.1 (BETA): The refined, high-performance engine upgrade found in the /MAS_V4_BETA/ directory.
 
-V&R (Vanquish & Replace): The mandatory deterministic pipeline for upgrading logic and maintaining state integrity.
+🏗️ Core Architectural Pillars
 
-3. Repository Structure
+The Ghost-Kill Rule: To maintain "Neural Purity," every module update requires a unique version identifier. We never edit; we replace. (V&R: Vanquish & Replace).
 
-├── /Core_Kernel          # System_0: The foundational logic engine.
-├── /Master_Index         # The Codec: Central registry of all active modules.
-├── /Manuals              # MAS_TECH_MANUAL: The primary governance guide.
-├── /Modules              # Specialized units (Research, Engineering, Visual).
-└── /Visual_Demons        # Immersive tools (Image Suite, Creation Nexus).
+The Axonal Bridge (AB): A next-generation logic-tethering protocol ensuring the AI's output never drifts from the Operator's command.
 
+The Temporal Sync Protocol (TSP): Adds a "Time Axis" to logic. It prevents the AI from getting confused by old commands by hard-locking logic to ISO-8601 timestamps.
 
-4. The Bootstrap Maintenance Ritual (Quick Start)
+The Verification Casket: No high-impact system change occurs without an explicit "YES" from the Operator.
 
-To initialize the MAS environment in your LLM workspace:
+Inquiry Logic Manifest: A mandatory "Audit Trail" where the AI must prove its reasoning before it speaks.
 
-Mount the Kernel: Upload MAS_Core_Kernel_V3_1_2.md.
+🚀 Quick Start: Onboarding the System
 
-Mount the Index: Upload MAS_Master_Index_V2_7.md.
+Choose the configuration that matches your operational needs to "Bootstrap" MAS into your session:
 
-Run Initialization: Input the Scroll Key command: RUN.
+The Power User (Full-Stack V4): Upload the V4 Kernel, the V4 Master Index, and the Tech Manual simultaneously. This creates a zero-context-debt environment.
 
-Verification: The system will respond: [SYSTEM ACTIVE | VERSION 2.7.0].
+The Classic Load (V2.7): Use the V3.1.2 Kernel with the V2.7 Master Index for the original deterministic experience.
 
-5. Scroll Key Command Reference
+The Minimalist Load: Upload MAS_Core_Kernel_V4_0_1_BETA.md only. The system will establish a baseline logic plane using internal fallbacks.
+
+⌨️ Essential Scroll Key Commands
 
 Command
 
 Result
+
+RUN
+
+Initializes the Kernel and adopts the Governance Layer.
 
 Open Codec
 
@@ -59,26 +60,28 @@ Displays the Master Index (The current system map).
 
 Open Manual
 
-Summons the authoritative Technical Manual.
+Summons the authoritative Technical Manual (V2.4.1).
 
-Check System Status
+Audit
 
-Diagnostic check of Kernel integrity and Ghost-Kill state.
+Triggers the Inquiry Logic Manifest (The "Split-Brain" check).
 
-Finalize V&R
+TETHER TIME ON
 
-Triggers the 5-step transaction pipeline to commit changes.
+Initiates the V4 Temporal Sync logic.
 
-Sanitize & Purge
+📂 Repository Structure
 
-Force-removes a module from the active logic stream.
+/MAS_V2_7_Classic/: The original, complete architecture (V2.7.0).
 
-6. Governance & Attribution
+/MAS_V4_BETA/: The new, high-performance "Axonal Bridge" implementation (V4.0.1).
+
+/Documentation/: Technical Specs for both the original blueprint and the V4 supplement.
+
+⚖️ Governance & Attribution
 
 Author: Barry M. Curran
 
-Requirements: Attribution is required for all forks or derivative works.
+Research: MAS AI Research Repository (PhilPapers)
 
-Usage: Non-commercial use only under CC BY-NC-SA 4.0.
-
-[STATUS: SYSTEM ACTIVE | READY FOR DIALOG]
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License. Attribution is required for all forks or derivative works. Non-commercial use only.
