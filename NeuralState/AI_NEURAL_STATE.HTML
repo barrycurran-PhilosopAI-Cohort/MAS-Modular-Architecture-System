@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Neural State Interaction Monitor - Cylon Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Michroma&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --chrome-light: #e2e8f0;
+            --chrome-mid: #94a3b8;
+            --chrome-dark: #334155;
+            --gold: #d4af37;
+            --gold-glow: #ffcc00;
+            --cylon-red: #ff0000;
+            --panel-bg: #0a0a0c;
+        }
+
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            font-family: 'Share Tech Mono', monospace;
+            height: 100vh;
+            overflow: hidden; /* Lock the viewport */
+            display: flex;
+            flex-direction: column;
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)),
+                repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.02) 1px, rgba(255,255,255,0.02) 2px),
+                url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h100v100H0z' fill='none'/%3E%3Cpath d='M10 10h80v80H10z' stroke='%23ffffff' stroke-opacity='0.03' fill='none'/%3E%3C/svg%3E");
+        }
+
+        /* BRUSHED METAL HEADER */
+        .metallic-header {
+            background: linear-gradient(to bottom, #cfd8dc 0%, #90a4ae 40%, #546e7a 50%, #263238 100%);
+            border-bottom: 3px solid #101010;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.8);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .title-stable {
+            font-family: 'Orbitron', sans-serif;
+            color: #1a1a1a;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 900;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+        }
+
+        /* HEAVY ROBOTIC PANELS */
+        .cylon-panel {
+            background: linear-gradient(135deg, #1a1a1c 0%, #0a0a0c 100%);
+            border: 2px solid #444;
+            border-radius: 4px;
+            position: relative;
+            box-shadow: 
+                inset 0 0 15px rgba(0,0,0,1),
+                0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        /* THE CYLON SCANNER - THINNER FOR SPACE */
+        .cylon-eye-container {
+            width: 100%;
+            height: 8px;
+            background: #111;
+            border: 1px solid #334155;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .cylon-eye {
+            position: absolute;
+            width: 80px;
+            height: 100%;
+            background: radial-gradient(circle, var(--cylon-red) 0%, transparent 80%);
+            box-shadow: 0 0 15px var(--cylon-red);
+            animation: scan 2.5s infinite ease-in-out;
+        }
+
+        @keyframes scan {
+            0% { left: -10%; }
+            50% { left: 90%; }
+            100% { left: -10%; }
+        }
+
+        /* INTERLOCKED METALLIC RINGS - ADJUSTED SCALE */
+        .rings-grid {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ring {
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 10px solid transparent;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .ring-1 { border-color: #3b82f6; top: 30px; left: 30px; z-index: 4; border-style: double; }
+        .ring-2 { border-color: #10b981; top: 30px; right: 30px; z-index: 3; }
+        .ring-3 { border-color: #f59e0b; bottom: 30px; left: 30px; z-index: 2; }
+        .ring-4 { border-color: #ef4444; bottom: 30px; right: 30px; z-index: 1; }
+
+        /* CHROME DIALS - SCALED FOR COMPACTNESS */
+        .dial-ring {
+            transition: stroke-dashoffset 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            filter: drop-shadow(0 0 6px currentColor);
+            stroke-width: 6;
+        }
+
+        .gold-text {
+            color: var(--gold);
+            text-shadow: 0 0 5px var(--gold-glow);
+        }
+
+        .heavy-label {
+            font-family: 'Michroma', sans-serif;
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            color: #888;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body class="p-0">
+
+    <!-- TOP BOLTED HEADER -->
+    <header class="metallic-header px-8 py-3 flex items-center justify-between z-50">
+        <div class="flex items-center gap-6">
+            <h1 class="title-stable text-xl">
+                AI NEURAL STATE INTERACTION MONITOR
+            </h1>
+            <div class="flex items-center gap-2 bg-black/30 px-3 py-1 rounded border border-white/10">
+                <span class="w-2 h-2 bg-red-600 rounded-full shadow-[0_0_8px_red]"></span>
+                <span class="text-[9px] font-bold text-black uppercase tracking-tighter">Cylon-Core Active</span>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <div class="text-right border-r border-black/20 pr-6">
+                <div id="date-display" class="text-[9px] text-slate-800 font-bold tracking-widest"></div>
+                <div id="time-display" class="text-xl font-black text-slate-900 tabular-nums leading-none">00:00:00</div>
+            </div>
+            <div class="text-center">
+                <div class="text-[8px] text-slate-800 font-bold uppercase mb-0.5">System State</div>
+                <div class="text-[10px] font-black text-red-800 bg-red-500/20 px-2 border border-red-500/50">ESTABLISHED</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="p-4 grid grid-cols-12 gap-4 flex-grow overflow-hidden">
+        
+        <!-- GAUGES AREA (LEFT) -->
+        <section class="col-span-7 flex flex-col gap-4">
+            <div class="cylon-eye-container">
+                <div class="cylon-eye"></div>
+            </div>
+
+            <!-- COMPACT GAUGE GRID -->
+            <div id="gauge-dock" class="grid grid-cols-2 gap-4">
+                <!-- Gauges injected by JS -->
+            </div>
+
+            <div class="cylon-panel p-4 border-l-4 border-l-red-600 flex-grow">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="heavy-label">NEURAL STREAM LOG</span>
+                    <span class="text-[8px] gold-text">SECURE LINK</span>
+                </div>
+                <div id="status-text" class="text-xs gold-text font-bold italic h-10 overflow-hidden leading-relaxed">
+                    INITIALIZING CENTURION CORE...
+                </div>
+            </div>
+        </section>
+
+        <!-- INTERLOCK SYSTEM (RIGHT) -->
+        <section class="col-span-5 flex flex-col gap-4">
+            <div class="cylon-panel flex-grow flex flex-col items-center justify-center p-4">
+                <div class="heavy-label mb-4">QUAD-NODE INTERLOCKING ARRAY</div>
+                
+                <div class="rings-grid">
+                    <div class="ring ring-1" style="box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);"></div>
+                    <div class="ring ring-2" style="box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);"></div>
+                    <div class="ring ring-3" style="box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);"></div>
+                    <div class="ring ring-4" style="box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);"></div>
+                    
+                    <!-- Labels inside the grid -->
+                    <div class="absolute top-4 left-4 gold-text text-[9px] font-bold">INTERPRETER</div>
+                    <div class="absolute top-4 right-4 gold-text text-[9px] font-bold">LOGIC</div>
+                    <div class="absolute bottom-4 left-4 gold-text text-[9px] font-bold">AFFECT</div>
+                    <div class="absolute bottom-4 right-4 gold-text text-[9px] font-bold">SYNTHESIS</div>
+                </div>
+
+                <div class="w-full mt-4 px-6">
+                    <div class="flex justify-between text-[9px] font-bold gold-text uppercase mb-1">
+                        <span>Interaction Strength</span>
+                        <span id="sync-val">0%</span>
+                    </div>
+                    <div class="h-2 w-full bg-black border border-slate-700 p-0.5">
+                        <div id="sync-bar" class="h-full bg-red-600 shadow-[0_0_10px_red] w-0 transition-all duration-1000"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="resync()" 
+                class="cylon-panel py-3 text-red-500 text-xs font-black uppercase tracking-[0.4em] hover:bg-red-500/10 transition-all border-red-900/50 flex-shrink-0">
+                INITIATE INTERLOCK SYNC
+            </button>
+        </section>
+    </main>
+
+    <footer class="bg-black px-8 py-2 border-t border-slate-900 flex justify-between text-[9px] font-bold chrome-text uppercase tracking-widest flex-shrink-0">
+        <div>MOD_03_CENTURION // KERNEL: SECURE</div>
+        <div class="gold-text">BY YOUR COMMAND</div>
+        <div>STABILITY: OPTIMAL</div>
+    </footer>
+
+    <script>
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('date-display').textContent = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).toUpperCase();
+            document.getElementById('time-display').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Build Gauges - Scaled down for the 4-box layout
+        const gaugeConfigs = [
+            { id: 'cong', label: 'CONGRUENCE', color: '#d4af37' },
+            { id: 'reson', label: 'RESONANCE', color: '#ff0000' },
+            { id: 'logic', label: 'SEMANTIC', color: '#94a3b8' },
+            { id: 'affect', label: 'AFFECTIVE', color: '#ffcc00' }
+        ];
+
+        const dock = document.getElementById('gauge-dock');
+        const c = 2 * Math.PI * 32; // Radius 32 for smaller dials
+
+        gaugeConfigs.forEach(g => {
+            dock.innerHTML += `
+                <div class="cylon-panel p-3 flex flex-col items-center">
+                    <svg width="100" height="100" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="32" fill="transparent" stroke="rgba(255,255,255,0.05)" stroke-width="8" />
+                        <circle id="g-${g.id}" cx="50" cy="50" r="32" fill="transparent" 
+                            stroke="${g.color}" stroke-width="6" 
+                            stroke-dasharray="${c}" stroke-dashoffset="${c}" 
+                            stroke-linecap="butt" class="dial-ring" />
+                        <text x="50" y="56" text-anchor="middle" class="fill-white font-bold text-[14px]" id="v-${g.id}">0</text>
+                    </svg>
+                    <div class="heavy-label mt-2">${g.label}</div>
+                </div>
+            `;
+        });
+
+        function updateGauges(vals) {
+            Object.keys(vals).forEach(k => {
+                const target = document.getElementById(`g-${k}`);
+                if (target) {
+                    const offset = c - (vals[k] / 100) * c;
+                    target.style.strokeDashoffset = offset;
+                    document.getElementById(`v-${k}`).textContent = Math.round(vals[k]);
+                }
+            });
+            const avg = Object.values(vals).reduce((a,b)=>a+b,0) / 4;
+            document.getElementById('sync-bar').style.width = avg + '%';
+            document.getElementById('sync-val').textContent = Math.round(avg) + '%';
+        }
+
+        function resync() {
+            const msg = [
+                "RECALIBRATING NEURAL ARRAYS...",
+                "INTERLOCKING SYNC VERIFIED.",
+                "BRIDGING INTERFACE NODES...",
+                "BY YOUR COMMAND: RESONANCE OPTIMAL",
+                "CENTURION DATA STREAM ACTIVE",
+                "MONITORING NEURAL STATE VECTORS..."
+            ];
+            document.getElementById('status-text').textContent = msg[Math.floor(Math.random()*msg.length)];
+            updateGauges({
+                cong: 85 + Math.random()*15,
+                reson: 90 + Math.random()*10,
+                logic: 80 + Math.random()*20,
+                affect: 88 + Math.random()*12
+            });
+        }
+
+        // Init
+        setTimeout(resync, 500);
+
+        // Subtle animation for interlocked rings
+        let angle = 0;
+        function animate() {
+            angle += 0.01;
+            const rings = document.querySelectorAll('.ring');
+            rings.forEach((r, i) => {
+                const shift = Math.sin(angle + i) * 4;
+                r.style.transform = `translate(${shift}px, ${Math.cos(angle + i) * 4}px)`;
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
