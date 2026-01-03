@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The TTS Farm Stand</title>
+    <!-- Use a fun, cartoony font -->
+    <link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <!-- Load Font Awesome for the speech bubble and save icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Define a color palette using CSS variables for easy theming */
+        :root {
+            --stand-wood: #a58e6e;
+            --stand-dark-wood: #7a6e5b;
+            --roof-color: #8b4513;
+            --roof-dark: #6b2809;
+            --road-gray: #333;
+            --road-light: #555;
+            --sky-blue: #4a90e2;
+            --grass-green: #468c4a;
+        }
+
+        body {
+            font-family: 'Shantell Sans', cursive;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            min-height: 100vh;
+            background: linear-gradient(to top, var(--grass-green) 0%, var(--grass-green) 20%, var(--sky-blue) 20%, var(--sky-blue) 100%);
+            position: relative;
+        }
+
+        .road {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 10%;
+            background: var(--road-gray);
+            border-top: 5px dashed var(--road-light);
+            z-index: 0;
+        }
+
+        .farm-stand-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 90%;
+            max-width: 500px;
+            margin-bottom: 50px;
+        }
+
+        .roof {
+            width: 120%;
+            max-width: 600px;
+            height: 80px;
+            background: linear-gradient(to bottom, var(--roof-color), var(--roof-dark));
+            border: 4px solid var(--stand-dark-wood);
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+            position: relative;
+            transform: skewX(-5deg);
+            margin-bottom: -40px; /* Overlap with the stand */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* New styles for the title on the roof */
+        .roof h1 {
+            color: #fff; /* Changed color to white for better visibility on the roof */
+            text-shadow: 2px 2px 0 var(--roof-dark);
+            margin: 0;
+            font-size: 1.8em; /* Adjusted font size to fit better */
+            transform: skewX(5deg); /* Counter-skew to make the text straight */
+        }
+
+        .stand {
+            width: 100%;
+            background: var(--stand-wood);
+            border: 4px solid var(--stand-dark-wood);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px; /* Increased the height for more visibility */
+            min-height: 150px; /* Ensures a minimum height on smaller screens */
+            border: 2px solid var(--stand-dark-wood);
+            border-radius: 8px;
+            padding: 10px;
+            font-family: 'Shantell Sans', cursive;
+            font-size: 1.2em;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        select {
+            padding: 10px;
+            border: 2px solid var(--stand-dark-wood);
+            border-radius: 8px;
+            font-family: 'Shantell Sans', cursive;
+            background-color: #fff;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Shantell Sans', cursive;
+            font-size: 1.1em;
+            cursor: pointer;
+            color: #fff;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        button#speak-button {
+            background-color: #4CAF50; /* Green */
+        }
+        
+        button#save-button {
+            background-color: #2196F3; /* Blue */
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            text-align: center;
+            z-index: 10;
+            border: 2px solid #333;
+        }
+        
+        .loading-container.hidden {
+            display: none;
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+            max-width: 80%;
+            min-width: 250px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="road"></div>
+    <div class="farm-stand-container">
+        <!-- The roof now contains the title -->
+        <div class="roof">
+            <h1>The TTS Farm Stand</h1>
+        </div>
+        <div class="stand">
+            <textarea id="text-input" placeholder="Type your message here..."></textarea>
+            <div class="controls">
+                <select id="voice-select"></select>
+                <button id="speak-button"><i class="fas fa-volume-up"></i> Speak</button>
+                <button id="save-button" disabled><i class="fas fa-save"></i> Save Audio</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading and Message Box UI elements -->
+    <div id="loadingIndicator" class="loading-container hidden">
+        <div class="loading-spinner"></div>
+        <p>Generating audio...</p>
+    </div>
+    <div id="message-container"></div>
+
+    <script>
+        // API key and URL constants
+        const apiKey = ""; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+        
+        // UI element references
+        const textInput = document.getElementById('text-input');
+        const speakButton = document.getElementById('speak-button');
+        const saveButton = document.getElementById('save-button');
+        const voiceSelect = document.getElementById('voice-select');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const messageContainer = document.getElementById('message-container');
+        
+        // State variables
+        let generatedAudioBlob = null;
+        let audio = null;
+        
+        // Exponential backoff retry variables
+        const maxRetries = 5;
+        let currentRetry = 0;
+        
+        // --- Utility Functions ---
+        
+        // Creates and shows a custom message box instead of using alert()
+        function showMessageBox(message) {
+            // Remove any existing message boxes
+            const existingBox = document.querySelector('.message-box');
+            if (existingBox) existingBox.remove();
+            
+            const messageBox = document.createElement('div');
+            messageBox.className = 'message-box';
+            messageBox.innerHTML = `
+                <p>${message}</p>
+                <button onclick="this.parentElement.remove()">OK</button>
+            `;
+            messageContainer.appendChild(messageBox);
+        }
+
+        // Converts a base64 string to an ArrayBuffer
+        function base64ToArrayBuffer(base64) {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        // Converts PCM audio data to a WAV Blob
+        function pcmToWav(pcmData, sampleRate) {
+            const buffer = new ArrayBuffer(44 + pcmData.length * 2);
+            const view = new DataView(buffer);
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcmData.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // PCM format
+            view.setUint16(22, 1, true); // Mono channel
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true); // byte rate
+            view.setUint16(32, 2, true); // block align
+            view.setUint16(34, 16, true); // bits per sample
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcmData.length * 2, true);
+            let offset = 44;
+            for (let i = 0; i < pcmData.length; i++, offset += 2) {
+                view.setInt16(offset, pcmData[i], true);
+            }
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        // Helper function for pcmToWav to write a string
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+        
+        // --- Main App Logic ---
+
+        // Pre-populate the voice selection dropdown with all available voices
+        const voices = [
+            { name: "Zephyr (Bright)", id: "Zephyr" },
+            { name: "Puck (Upbeat)", id: "Puck" },
+            { name: "Charon (Informative)", id: "Charon" },
+            { name: "Kore (Firm)", id: "Kore" },
+            { name: "Fenrir (Excitable)", id: "Fenrir" },
+            { name: "Leda (Youthful)", id: "Leda" },
+            { name: "Orus (Firm)", id: "Orus" },
+            { name: "Aoede (Breezy)", id: "Aoede" },
+            { name: "Callirrhoe (Easy-going)", id: "Callirrhoe" },
+            { name: "Autonoe (Bright)", id: "Autonoe" },
+            { name: "Enceladus (Breathy)", id: "Enceladus" },
+            { name: "Iapetus (Clear)", id: "Iapetus" },
+            { name: "Umbriel (Easy-going)", id: "Umbriel" },
+            { name: "Algieba (Smooth)", id: "Algieba" },
+            { name: "Despina (Smooth)", id: "Despina" },
+            { name: "Erinome (Clear)", id: "Erinome" },
+            { name: "Algenib (Gravelly)", id: "Algenib" },
+            { name: "Rasalgethi (Informative)", id: "Rasalgethi" },
+            { name: "Laomedeia (Upbeat)", id: "Laomedeia" },
+            { name: "Achernar (Soft)", id: "Achernar" },
+            { name: "Alnilam (Firm)", id: "Alnilam" },
+            { name: "Schedar (Even)", id: "Schedar" },
+            { name: "Gacrux (Mature)", id: "Gacrux" },
+            { name: "Pulcherrima (Forward)", id: "Pulcherrima" },
+            { name: "Achird (Friendly)", id: "Achird" },
+            { name: "Zubenelgenubi (Casual)", id: "Zubenelgenubi" },
+            { name: "Vindemiatrix (Gentle)", id: "Vindemiatrix" },
+            { name: "Sadachbia (Lively)", id: "Sadachbia" },
+            { name: "Sadaltager (Knowledgeable)", id: "Sadaltager" },
+            { name: "Sulafat (Warm)", id: "Sulafat" }
+        ];
+
+        voices.forEach(voice => {
+            const option = document.createElement('option');
+            option.value = voice.id;
+            option.textContent = voice.name;
+            voiceSelect.appendChild(option);
+        });
+
+        // Function to handle the TTS request
+        function speakText() {
+            // Check if audio is currently playing and stop it
+            if (audio && !audio.paused) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+            
+            const textToSpeak = textInput.value.trim();
+            if (!textToSpeak) {
+                showMessageBox("Please enter some text to speak.");
+                return;
+            }
+
+            loadingIndicator.classList.remove('hidden');
+            speakButton.disabled = true;
+            saveButton.disabled = true;
+
+            const payload = {
+                contents: [{ parts: [{ text: textToSpeak }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceSelect.value } } }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            const makeApiCall = async () => {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status} ${response.statusText}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    // Check for a top-level error message from the API before trying to parse audio data
+                    if (result.error) {
+                        throw new Error(result.error.message);
+                    }
+
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                        const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                        const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
+                        const pcmDataBuffer = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmDataBuffer);
+                        generatedAudioBlob = pcmToWav(pcm16, sampleRate);
+                        const audioUrl = URL.createObjectURL(generatedAudioBlob);
+                        
+                        audio = new Audio(audioUrl);
+                        audio.play();
+                        
+                        audio.onended = () => {
+                            URL.revokeObjectURL(audioUrl);
+                            loadingIndicator.classList.add('hidden');
+                            speakButton.disabled = false;
+                            saveButton.disabled = false;
+                        };
+                    } else {
+                        // If no audio data, check for a text response, which might contain a specific error message from the model
+                        const errorMessage = (part && part.text) ? part.text : "Invalid audio data received from API. The response may have been filtered.";
+                        throw new Error(errorMessage);
+                    }
+                } catch (error) {
+                    console.error("API Call Error:", error);
+                    if (currentRetry < maxRetries) {
+                        currentRetry++;
+                        const delay = Math.pow(2, currentRetry) * 1000;
+                        setTimeout(makeApiCall, delay);
+                    } else {
+                        showMessageBox(`Failed to generate audio after several retries. Reason: ${error.message}`);
+                        loadingIndicator.classList.add('hidden');
+                        speakButton.disabled = false;
+                        saveButton.disabled = false;
+                    }
+                }
+            };
+            
+            currentRetry = 0; // Reset retry counter for new calls
+            makeApiCall();
+        }
+
+        // Function to handle saving the audio file
+        function saveAudio() {
+            if (generatedAudioBlob) {
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = URL.createObjectURL(generatedAudioBlob);
+                a.download = `tts-audio-${Date.now()}.wav`;
+                document.body.appendChild(a);
+                a.click();
+                URL.revokeObjectURL(a.href);
+                document.body.removeChild(a);
+            } else {
+                showMessageBox("Please generate audio first before trying to save.");
+            }
+        }
+
+        // Event listeners for the buttons
+        speakButton.addEventListener('click', speakText);
+        saveButton.addEventListener('click', saveAudio);
+    </script>
+</body>
+</html>
