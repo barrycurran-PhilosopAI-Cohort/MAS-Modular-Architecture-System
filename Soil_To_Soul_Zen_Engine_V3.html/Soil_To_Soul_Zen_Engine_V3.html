@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soil-to-Soul: Zen Growth Engine (V2.7)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4ed; color: #2d3e33; }
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+        .garden-gradient { background: linear-gradient(135deg, #2d5a27 0%, #1e3a1a 100%); }
+        .card-shadow { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); }
+        .manifesto-overlay { background: rgba(45, 62, 51, 0.85); backdrop-filter: blur(8px); }
+        .no-print { display: block; }
+        @media print { .no-print { display: none; } .manifesto-content { position: absolute; top: 0; left: 0; width: 100%; background: white !important; color: black !important; } }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div id="app" class="max-w-4xl mx-auto px-4 py-8">
+        <header class="text-center mb-12 no-print">
+            <h1 class="text-5xl font-bold text-green-900 mb-2">Soil-to-Soul</h1>
+            <p class="text-lg text-green-700 italic">The Zen Growth Engine (V2.7)</p>
+        </header>
+
+        <section id="discovery-form" class="bg-white rounded-2xl p-8 card-shadow mb-8 no-print">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">📍 Zip Code</label>
+                    <input type="text" id="zipCode" placeholder="21085" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">📅 Month</label>
+                    <select id="month" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none transition-all">
+                        <option value="January">January</option><option value="February">February</option>
+                        <option value="March">March</option><option value="April">April</option>
+                        <option value="May">May</option><option value="June">June</option>
+                        <option value="July">July</option><option value="August">August</option>
+                        <option value="September" selected>September</option><option value="October">October</option>
+                        <option value="November">November</option><option value="December">December</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">🏡 Garden Space</label>
+                    <select id="space" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-green-500 outline-none transition-all">
+                        <option value="Patio">Patio</option>
+                        <option value="Small">Small Garden</option>
+                        <option value="Large">Large Garden</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="startDiscovery()" id="searchBtn" class="mt-8 w-full garden-gradient text-white font-bold py-4 rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                <span>🌱 Initialize Discovery</span>
+            </button>
+        </section>
+
+        <section id="results-section" class="hidden no-print">
+            <h2 class="text-2xl font-bold text-green-900 mb-6 flex items-center gap-2">🌿 Recommended for Your Sanctuary</h2>
+            <div id="plant-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <div id="loading-state" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-white/80">
+            <div class="text-center">
+                <div class="w-16 h-16 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+                <p class="text-green-800 font-medium animate-pulse">Consulting the Soil Spirits...</p>
+            </div>
+        </div>
+
+        <div id="manifesto-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 manifesto-overlay overflow-y-auto">
+            <div class="bg-[#fdfbf7] w-full max-w-3xl rounded-2xl shadow-2xl relative overflow-hidden manifesto-content">
+                <div class="garden-gradient p-8 text-white relative">
+                    <button onclick="closeManifesto()" class="absolute top-4 right-4 text-white/70 hover:text-white no-print">✕ Close</button>
+                    <p class="text-xs uppercase tracking-widest opacity-80 mb-2">Botanical Guide & Growth Strategy</p>
+                    <h2 id="manifesto-title" class="text-4xl font-bold mb-2"></h2>
+                    <p id="manifesto-latin" class="italic opacity-90"></p>
+                </div>
+                <div id="manifesto-body" class="p-8 space-y-8"></div>
+                <div class="p-8 bg-gray-50 border-t border-gray-100 flex justify-between items-center no-print">
+                    <button id="save-button" class="bg-green-100 text-green-800 px-6 py-2 rounded-lg font-semibold hover:bg-green-200 transition-all">💾 Save Report (.md)</button>
+                    <button onclick="closeManifesto()" class="text-gray-500 font-medium hover:text-gray-800">Return to Garden</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global storage for the current manifesto data to facilitate saving
+        let currentManifestoData = null;
+        let currentPlantName = "";
+
+        // THE SOVEREIGN HANDSHAKE PATTERN
+        async function callGemini(prompt) {
+            const apiKey = ""; // DO NOT TOUCH THIS
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        async function startDiscovery() {
+            const zip = document.getElementById('zipCode').value;
+            const month = document.getElementById('month').value;
+            const space = document.getElementById('space').value;
+            if (!zip) return;
+
+            toggleLoading(true);
+            try {
+                const prompt = `Return a JSON object only. Schema: { "plants": [{ "name": "string", "type": "Start Indoors Now/Plant Outdoors Now", "emoji": "string" }] }. What 10 plants should I plant in zip code ${zip} in ${month} for a ${space} garden? Use real climate data.`;
+                const text = await callGemini(prompt);
+                const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const data = JSON.parse(cleanText);
+                renderPlantList(data.plants);
+            } catch (e) {
+                showUserError(`Soil Link Failed: ${e.message}`);
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        async function getManifesto(plantName) {
+            toggleLoading(true);
+            try {
+                const prompt = `Return a JSON object only for the plant "${plantName}": { "scientific_name": "string", "sowing": "string", "germination": "string", "maturity": "string", "edibility": "string", "propagation": "string", "preservation": "string" }. Include toxicity warnings.`;
+                const text = await callGemini(prompt);
+                const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const data = JSON.parse(cleanText);
+                currentPlantName = plantName;
+                currentManifestoData = data;
+                renderManifesto(plantName, data);
+            } catch (e) {
+                showUserError(`Manifesto Error: ${e.message}`);
+            } finally {
+                toggleLoading(false);
+            }
+        }
+
+        function saveAsMarkdown() {
+            if (!currentManifestoData) return;
+
+            const mdContent = `# Growth Manifesto: ${currentPlantName}
+*Scientific Name: ${currentManifestoData.scientific_name}*
+
+## Timeline
+- **Germination:** ${currentManifestoData.germination}
+- **Maturity:** ${currentManifestoData.maturity}
+
+## Consumption & Edibility
+${currentManifestoData.edibility}
+
+## Sowing Instructions
+${currentManifestoData.sowing}
+
+## Propagation
+${currentManifestoData.propagation}
+
+## Preservation
+${currentManifestoData.preservation}
+
+---
+Generated by Soil-to-Soul: Zen Growth Engine`;
+
+            const blob = new Blob([mdContent], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentPlantName.replace(/\s+/g, '_')}_Manifesto.md`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        function renderPlantList(plants) {
+            const grid = document.getElementById('plant-grid');
+            grid.innerHTML = '';
+            plants.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-xl border border-gray-100 card-shadow cursor-pointer hover:border-green-500 transition-all flex items-center justify-between group";
+                card.onclick = () => getManifesto(p.name);
+                card.innerHTML = `<div class="flex items-center gap-4"><span class="text-3xl">${p.emoji}</span><div><h3 class="font-bold text-green-900">${p.name}</h3><span class="text-xs font-semibold px-2 py-1 rounded ${p.type.includes('Indoors') ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'} uppercase">${p.type}</span></div></div><span class="text-green-300 group-hover:text-green-600 text-xl">→</span>`;
+                grid.appendChild(card);
+            });
+            document.getElementById('results-section').classList.remove('hidden');
+        }
+
+        function renderManifesto(name, data) {
+            document.getElementById('manifesto-title').innerText = name;
+            document.getElementById('manifesto-latin').innerText = data.scientific_name;
+            document.getElementById('manifesto-body').innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-stone-50 p-4 rounded-lg border-l-4 border-green-600">
+                        <h4 class="font-bold text-green-900">⏱️ Timeline</h4>
+                        <p class="text-sm">Germination: ${data.germination}</p><p class="text-sm">Maturity: ${data.maturity}</p>
+                    </div>
+                    <div class="bg-stone-50 p-4 rounded-lg border-l-4 border-amber-600">
+                        <h4 class="font-bold text-green-900">🍴 Consumption</h4>
+                        <p class="text-sm">${data.edibility}</p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div><h4 class="text-xl font-bold text-green-900">🚜 Sowing</h4><p class="text-gray-700">${data.sowing}</p></div>
+                    <div><h4 class="text-xl font-bold text-green-900">🔄 Propagation</h4><p class="text-gray-700">${data.propagation}</p></div>
+                    <div><h4 class="text-xl font-bold text-green-900">🏺 Preservation</h4><p class="text-gray-700">${data.preservation}</p></div>
+                </div>`;
+            
+            // Set up the save button
+            document.getElementById('save-button').onclick = saveAsMarkdown;
+            
+            document.getElementById('manifesto-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeManifesto() {
+            document.getElementById('manifesto-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function toggleLoading(show) { document.getElementById('loading-state').classList.toggle('hidden', !show); }
+
+        function showUserError(msg) {
+            const err = document.createElement('div');
+            err.className = "fixed bottom-4 left-4 right-4 bg-red-600 text-white p-4 rounded-lg z-[100] text-center shadow-xl font-bold";
+            err.innerText = msg;
+            document.body.appendChild(err);
+            setTimeout(() => err.remove(), 5000);
+        }
+    </script>
+</body>
+</html>
