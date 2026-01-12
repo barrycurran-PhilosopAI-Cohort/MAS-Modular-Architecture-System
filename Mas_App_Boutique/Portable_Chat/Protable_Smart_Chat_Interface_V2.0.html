@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Chat Interface v2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #0f172a; 
+            color: #1e293b; 
+            font-family: 'Lexend', sans-serif; 
+            margin: 0; 
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            overflow-y: auto; 
+        }
+
+        .shell-container { 
+            width: 100%; 
+            max-width: 900px; 
+            background: #f8fafc; 
+            border: 2px solid #2563eb; 
+            padding: 1.5rem; 
+            border-radius: 12px; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 95vh;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 1rem; 
+            padding-bottom: 0.5rem; 
+            border-bottom: 2px solid #2563eb; 
+        }
+
+        .brand-label { 
+            font-size: 0.8rem; 
+            color: #2563eb; 
+            letter-spacing: 0.5px; 
+            font-weight: 900; 
+            text-transform: uppercase;
+        }
+        
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .text-well { 
+            width: 100%; 
+            background: #f1f5f9; 
+            border: 2px solid #cbd5e1; 
+            padding: 1rem; 
+            padding-right: 3.5rem;
+            color: #1e293b; 
+            font-size: 1.05rem; 
+            line-height: 1.5; 
+            resize: vertical; 
+            outline: none; 
+            min-height: 120px; 
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            transition: border-color 0.2s;
+        }
+
+        .text-well:focus { 
+            border-color: #2563eb;
+            background: #ffffff;
+        }
+
+        .mic-btn {
+            position: absolute;
+            right: 15px;
+            bottom: 25px;
+            background: #ffffff;
+            border: 2px solid #2563eb;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+
+        .mic-btn.listening {
+            background: #ef4444;
+            border-color: #ef4444;
+            animation: pulse-mic 1.5s infinite;
+        }
+
+        .mic-btn.listening svg { fill: #ffffff; }
+
+        @keyframes pulse-mic {
+            0% { transform: scale(1); }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .btn-row {
+            display: flex;
+            justify-content: flex-start; 
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .primary-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn { 
+            padding: 0.6rem 1.2rem; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            letter-spacing: 0.05em; 
+            cursor: pointer; 
+            border: 2px solid #2563eb;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            border-radius: 6px;
+        }
+
+        .btn-ready { background: #2563eb; color: #ffffff; }
+        .btn-ready:hover { background: #1d4ed8; }
+        
+        .btn-transmit { background: #0d9488; color: #ffffff; border-color: #0d9488; display: none; }
+        .btn-transmit.active { display: block; }
+
+        .btn-utility { background: #ffffff; color: #64748b; border-color: #cbd5e1; font-size: 0.65rem; }
+
+        .btn-toggle {
+            background: #f1f5f9;
+            color: #64748b;
+            border-color: #cbd5e1;
+            min-width: 140px;
+        }
+        .btn-toggle.on {
+            background: #dcfce7;
+            color: #166534;
+            border-color: #22c55e;
+        }
+
+        .ai-display { 
+            flex-grow: 1; 
+            background: #f1f5f9; 
+            border: 2px solid #cbd5e1; 
+            padding: 1.5rem; 
+            margin-top: 1rem; 
+            color: #1e293b; 
+            font-size: 1.05rem; 
+            line-height: 1.7; 
+            overflow-y: auto; 
+            position: relative;
+            min-height: 350px; 
+            border-radius: 8px;
+        }
+
+        .robot-avatar {
+            position: sticky;
+            top: 0;
+            float: right;
+            width: 110px;
+            height: 110px;
+            margin-left: 15px;
+            margin-bottom: 15px;
+            background: #ecfdf5; 
+            border: 2px solid #059669; 
+            padding: 5px;
+            z-index: 10;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loader { 
+            display: none; 
+            position: absolute; 
+            top: 10px; 
+            left: 50%;
+            transform: translateX(-50%);
+            color: #2563eb; 
+            font-weight: bold; 
+            font-size: 0.7rem; 
+            background: #ffffff;
+            padding: 4px 12px;
+            border: 1px solid #2563eb;
+            border-radius: 20px;
+            z-index: 20;
+        }
+        .loader.active { display: block; }
+
+        .controls-footer {
+            margin-top: 1rem;
+            border-top: 2px solid #cbd5e1;
+            padding-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .voice-select {
+            font-size: 0.8rem;
+            padding: 6px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .branding-footer { 
+            font-size: 0.65rem; 
+            color: #64748b; 
+            text-align: center; 
+            margin-top: 1rem; 
+            letter-spacing: 0.1em; 
+            font-weight: 700;
+        }
+
+        .msg-block { margin-bottom: 20px; animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+<div class="shell-container">
+    <div class="header">
+        <div class="brand-label">Smart Chat Interface</div>
+        <div class="brand-label">Powered by Gemini v2.0</div>
+    </div>
+
+    <div class="input-wrapper">
+        <textarea id="humanInput" class="text-well" placeholder="Type your message here..."></textarea>
+        <button id="micBtn" onclick="toggleSpeech()" class="mic-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#2563eb"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+        </button>
+    </div>
+    
+    <div class="btn-row">
+        <button id="speechToggleBtn" onclick="toggleAudioOutput()" class="action-btn btn-toggle on">Speech: ON</button>
+        
+        <div class="primary-actions">
+            <button id="mainBtn" onclick="handleProcess()" class="action-btn btn-ready">Send Message</button>
+            <button id="transmitBtn" onclick="handleTransmit()" class="action-btn btn-transmit">Confirm Transmission</button>
+        </div>
+    </div>
+
+    <div class="ai-display" id="aiDisplay">
+        <div class="robot-avatar" id="robotAvatar">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 95 Q20 75 50 75 Q80 75 80 95" fill="#94a3b8" stroke="#64748b" stroke-width="1.5" />
+                <rect x="44" y="68" width="12" height="10" rx="2" fill="#cbd5e1" stroke="#64748b" stroke-width="1" />
+                <rect x="28" y="25" width="44" height="45" rx="20" fill="#e2e8f0" stroke="#64748b" stroke-width="2" />
+                <path d="M25 45 Q25 20 50 20 Q75 20 75 45" fill="none" stroke="#1e293b" stroke-width="5" />
+                <rect x="22" y="42" width="10" height="18" rx="4" fill="#1e293b" />
+                <rect x="68" y="42" width="10" height="18" rx="4" fill="#1e293b" />
+                <rect x="42" y="58" width="16" height="4" rx="2" fill="#cbd5e1" stroke="#64748b" stroke-width="1" />
+                <path d="M30 58 Q35 68 45 68" fill="none" stroke="#1e293b" stroke-width="2" />
+                <circle cx="48" cy="68" r="3" fill="#1e293b" />
+                <circle cx="40" cy="48" r="5" fill="#000"/><circle class="robot-eye" cx="40" cy="48" r="2" fill="#60a5fa"/>
+                <circle cx="60" cy="48" r="5" fill="#000"/><circle class="robot-eye" cx="60" cy="48" r="2" fill="#60a5fa"/>
+            </svg>
+        </div>
+        <div id="loader" class="loader">COMMUNICATING...</div>
+        <div id="displayText" class="opacity-40 italic">System ready. Enter a prompt to begin.</div>
+    </div>
+
+    <div class="controls-footer">
+        <select id="voiceSelect" class="voice-select"><option value="">Loading Voices...</option></select>
+        <div class="btn-row">
+            <button onclick="window.speechSynthesis.cancel()" class="action-btn btn-utility">Stop All Audio</button>
+            <button onclick="exportLog()" class="action-btn btn-utility">Export Log</button>
+        </div>
+    </div>
+    
+    <div class="branding-footer">SMART CHAT INTERFACE V2.0 // POWERED BY GEMINI AI</div>
+</div>
+
+<script>
+    const apiKey = ""; // Provided by the environment at runtime
+    let recognition;
+    let isListening = false;
+    let audioOutputEnabled = true;
+
+    // Speech Recognition Setup
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.onresult = (e) => {
+            document.getElementById('humanInput').value = e.results[0][0].transcript;
+            stopListening();
+        };
+        recognition.onend = stopListening;
+    }
+
+    function toggleSpeech() {
+        if (!recognition) return;
+        isListening ? stopListening() : startListening();
+    }
+    function startListening() {
+        isListening = true;
+        recognition.start();
+        document.getElementById('micBtn').classList.add('listening');
+    }
+    function stopListening() {
+        isListening = false;
+        recognition.stop();
+        document.getElementById('micBtn').classList.remove('listening');
+    }
+
+    // TTS Setup
+    const synth = window.speechSynthesis;
+    let voices = [];
+    function populateVoices() {
+        voices = synth.getVoices();
+        const select = document.getElementById('voiceSelect');
+        select.innerHTML = voices
+            .map((v, i) => `<option value="${i}">${v.name} (${v.lang})</option>`)
+            .join('');
+    }
+    if (synth.onvoiceschanged !== undefined) {
+        synth.onvoiceschanged = populateVoices;
+    }
+
+    function toggleAudioOutput() {
+        audioOutputEnabled = !audioOutputEnabled;
+        const btn = document.getElementById('speechToggleBtn');
+        if (audioOutputEnabled) {
+            btn.innerText = "Speech: ON";
+            btn.classList.add('on');
+        } else {
+            btn.innerText = "Speech: OFF";
+            btn.classList.remove('on');
+            synth.cancel();
+        }
+    }
+
+    function speak(text) {
+        if (!audioOutputEnabled) return;
+        synth.cancel();
+        const utterance = new SpeechSynthesisUtterance(text.replace(/<[^>]*>/g, ''));
+        const idx = document.getElementById('voiceSelect').value;
+        if (voices[idx]) utterance.voice = voices[idx];
+        synth.speak(utterance);
+    }
+
+    // AI Communication Logic
+    function handleProcess() {
+        const val = document.getElementById('humanInput').value;
+        if (!val) return;
+        document.getElementById('mainBtn').style.display = "none";
+        document.getElementById('transmitBtn').classList.add('active');
+        document.getElementById('displayText').innerHTML = "Ready to send. Click confirm to transmit to Gemini.";
+    }
+
+    async function handleTransmit() {
+        const input = document.getElementById('humanInput').value;
+        const display = document.getElementById('displayText');
+        const loader = document.getElementById('loader');
+        const mainBtn = document.getElementById('mainBtn');
+        const transmitBtn = document.getElementById('transmitBtn');
+        
+        if (display.innerHTML.includes("Ready to send")) display.innerHTML = "";
+        loader.classList.add('active');
+        transmitBtn.classList.remove('active');
+        transmitBtn.disabled = true;
+
+        const fetchWithRetry = async (url, options, retries = 5, delay = 1000) => {
+            try {
+                const res = await fetch(url, options);
+                if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+                return await res.json();
+            } catch (err) {
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return fetchWithRetry(url, options, retries - 1, delay * 2);
+                }
+                throw err;
+            }
+        };
+
+        try {
+            const result = await fetchWithRetry(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: input }] }],
+                        systemInstruction: { parts: [{ text: "You are Gemini, a helpful AI robot. Be friendly, clear, and professional." }] }
+                    })
+                }
+            );
+
+            const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "No response received.";
+            
+            const div = document.createElement('div');
+            div.className = "msg-block";
+            div.innerHTML = `<strong>You:</strong> ${input}<br><strong>Gemini:</strong> ${text.replace(/\n/g, '<br>')}<hr class="my-4 border-slate-300">`;
+            
+            display.appendChild(div);
+            speak(text);
+        } catch (e) {
+            console.error(e);
+            const errDiv = document.createElement('p');
+            errDiv.style.color = 'red';
+            errDiv.innerText = "Transmission Error: Could not connect to the intelligence service. Please try again later.";
+            display.appendChild(errDiv);
+        } finally {
+            loader.classList.remove('active');
+            transmitBtn.classList.remove('active');
+            transmitBtn.disabled = false;
+            mainBtn.style.display = "block";
+            document.getElementById('humanInput').value = "";
+            document.getElementById('aiDisplay').scrollTop = document.getElementById('aiDisplay').scrollHeight;
+        }
+    }
+
+    function exportLog() {
+        const log = document.getElementById('displayText').innerText;
+        const blob = new Blob([log], {type: 'text/plain'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "Gemini_Chat_Log.txt";
+        a.click();
+    }
+
+    window.onload = () => {
+        populateVoices();
+        setTimeout(populateVoices, 500);
+    };
+</script>
+</body>
+</html>
