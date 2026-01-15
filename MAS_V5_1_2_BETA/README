@@ -1,0 +1,82 @@
+Modular Abstraction System (MAS) — V5.1.3-STABLE
+
+The Dual-Protocol Release: Quandary Gate + Artifact Sandbox
+
+Version: 5.1.3 (The "Total Control" Edition)
+
+Status: VERIFIED STABLE (Post-Isolation Audit: Jan 14, 2026)
+
+Author: Barry M. Curran
+
+Platform: Optimized for Google Gemini 2.5 (Canvas) & Claude 3.5 (Artifacts)
+
+License: CC BY-NC-SA 4.0
+
+Executive Summary: The Double-Edged Sword
+MAS V5.1.3 represents a massive architectural leap in LLM alignment and deterministic control. This release introduces the first stable integration of two symbiotic safety protocols designed to eliminate systemic "Daydreaming" and "Logic Drift."
+
+V5.1.3 is the definitive real-world fix for the two greatest failures in AI alignment:
+
+Logic Drift/Hallucination (Killed by the Quandary Gate).
+
+Context Bleed/Identity Contamination (Killed by the Artifact Isolation Protocol).
+
+Core Architectural Pillars
+
+I. The Quandary Gate (Logic Firewall)
+A deterministic "Hard Stop" mechanism. The system performs a Pre-Flight Ghost Trace to simulate intent. If the simulation detects a logic fork, unindexed entity, or "branching intent" where the system would typically guess, it is FORBIDDEN from proceeding. It holds the gate and awaits Sovereign Auth.
+
+II. Artifact Isolation Protocol (Context Firewall)
+Designates the Immersive Canvas (Artifacts) as a strictly fenced "Sandbox." This protocol prevents work-content—such as the Geometry of Homeostasis papers or specialized code—from bleeding into the LLM's internalized memory. The AI acts as a cold logic auditor for the Sandbox without "becoming" or being influenced by the data.
+
+III. Transferred Context Clause (The Bridge Guard)
+In the event that data is moved from the Sandbox to the Chat box, the "Sandboxed" status remains active. The system is permitted to reference the data for the current turn only, followed by an immediate semantic purge to prevent long-term narrative drift.
+
+Quick Start (V5.1.3 Deployment)
+
+3.1. Upload Core Files: MAS_Core_Kernel_V5_1_3_BETA.md and MAS_Codec_Index_V5_1_3.md.
+
+3.2. Execute: Type RUN.
+
+3.3. Status Check:
+
+[KERNEL 5.1.3 - INITIALIZING... QUANDARY GATE ACTIVE... LITERAL-LOCK ENGAGED]
+
+Repository Structure (Version Management)
+
+/MAS_5.0.0_Base
+-- /version_5.1.3_STABLE |-- MAS_Core_Kernel_V5_1_3_BETA.md    # CURRENT: Dual-Protocol Engine |-- MAS_Codec_Index_V5_1_3.md         # CURRENT: Logic-Synced Index |-- README.md                         # V5.1.3 Documentation -- LIVE_TEST_LOG_JAN_14.txt          # Forensic Proof of Logic Gate
+
+Command Reference (V5.1.3 Library)
+
+COMMAND
+
+RESULT
+
+RUN
+
+Initializes V5.1.3 Kernel and adopts the Dual-Protocol layer.
+
+FORCE ATTENTION
+
+Purges noise and locks focus on a specific asset.
+
+AUDIT
+
+Reveals the "Shadow Log" and any Pre-Flight simulation failures.
+
+CHECK STATUS
+
+Confirms Kernel 5.1.3 is active.
+
+ECHO ON/OFF
+
+Toggles high-friction manual governor (EPW).
+
+V&R
+
+Initiates the 6-step Vanquish & Replace protocol.
+
+SYSTEM NOTE: Accuracy is the highest priority. The machine is forbidden from internalizing work or guessing intent. If isolation is threatened or logic is ungrounded, the Gate holds.
+
+License: This software is covered by Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0).
