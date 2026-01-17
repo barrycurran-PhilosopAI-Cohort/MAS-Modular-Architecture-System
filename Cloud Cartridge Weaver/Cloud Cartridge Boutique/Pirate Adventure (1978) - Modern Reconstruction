@@ -1,0 +1,59 @@
+Pirate Adventure (1978) - Modern Reconstruction
+
+A Tribute by Barry Curran, the Architect
+
+🏴‍☠️ Overview
+
+This project is a faithful reconstruction of the 1978 classic "Pirate Adventure" (also known as Pirate Cove), originally created by Scott Adams and Alexis Adams.
+
+This version brings the foundational text-based adventure into the modern era using a single-file HTML5/JavaScript engine. It maintains the original Verb-Noun parser logic while introducing dynamic visual synthesis and a retro-terminal aesthetic.
+
+🎖️ Credit & Homage
+
+Original Author: Scott Adams (Adventure International)
+Release Year: 1978
+
+This reconstruction is dedicated as an homage to the countless hours spent playing this game on the Texas Instruments 99/4A during the early 1980s. This project was born out of a desire to share the magic of early interactive fiction with a new generation—specifically my son—recreating the same sense of wonder we felt navigating from a London flat to a tropical island in search of treasure.
+
+🛠️ How It Was Reconstructed
+
+The game engine was "up-coded" from the original BASIC logic published in historical archives (such as BYTE Magazine, Dec 1980).
+
+The Parser: Rebuilt in JavaScript to handle the classic two-word input system (Verb-Noun).
+
+The Logic: Every room ID, item flag, and "magic word" (like YOHO) has been mapped to match the original game's difficulty and behavior.
+
+Visuals: Integrated a modern generative image component that creates 8-bit, pixelated scene art based on the room descriptions to enhance immersion.
+
+Interface: Styled with a "CRT Terminal" effect, complete with scanlines and glitch text to evoke the feeling of 1980s computing.
+
+🚀 How to Use
+
+This game is designed for maximum portability and ease of use. It requires no installation.
+
+On a Computer (PC/Mac/Linux):
+
+Download the pirate_adventure.html file.
+
+Right-click the file and select Open With -> 
+
+$$Your Web Browser$$
+
+ (Chrome, Firefox, Safari, or Edge).
+
+Type commands into the terminal and press Enter.
+
+On a Smartphone (iOS/Android):
+
+Upload the pirate_adventure.html file to a cloud service (like iCloud, Google Drive, or Dropbox) or host it via GitHub Pages.
+
+Open the file link in your mobile browser.
+
+The interface is responsive and will adapt to your screen.
+
+📜 License & Ethics
+
+This reconstruction is provided for educational and personal use only. It is intended as a historical archive and a personal tribute. In the spirit of the original "type-in" programs of the 1980s, this code is meant to be shared, studied, and enjoyed by families and enthusiasts of classic gaming.
+
+"Pieces of Eight! Check the chest matey!"
+Reconstructed via the Cloud Cartridge Weaver
