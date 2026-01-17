@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Elizabeth's Toggle Peggle</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background: #020617; 
+            font-family: 'Fredoka One', cursive; 
+            margin: 0; 
+            overflow: hidden; 
+            touch-action: none; 
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 450px;
+            background: #0c4a6e;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border-left: 2px solid #1e293b;
+            border-right: 2px solid #1e293b;
+        }
+        
+        #game-header {
+            background: linear-gradient(to bottom, #1e293b, #0f172a);
+            color: white;
+            padding: 8px 0;
+            text-align: center;
+            border-bottom: 3px solid #fbbf24;
+            position: relative;
+        }
+
+        .main-title { 
+            font-size: 18px; 
+            color: #fbbf24; 
+            text-shadow: 1px 1px #b45309;
+            margin-bottom: 2px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .btn-quit {
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border-bottom: 2px solid #991b1b;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .btn-quit:active { transform: translateY(1px); border-bottom-width: 0; }
+
+        #inventory-container {
+            background: rgba(0,0,0,0.4);
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .coin-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 250px; }
+        .ui-coin { 
+            width: 14px; 
+            height: 14px; 
+            background: radial-gradient(circle at 30% 30%, #fbbf24, #d97706); 
+            border-radius: 50%; 
+            border: 1px solid #78350f;
+        }
+        .ui-coin.spent { opacity: 0.1; filter: grayscale(1); }
+
+        #canvas-wrapper {
+            flex-grow: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%);
+            overflow: hidden;
+        }
+
+        canvas { width: 100%; height: 100%; display: block; }
+
+        .overlay { 
+            display: none; 
+            position: absolute; 
+            inset: 0; 
+            background: rgba(0, 0, 0, 0.9); 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 2000; 
+            color: white; 
+            padding: 20px;
+            text-align: center;
+        }
+        
+        #certificate-screen {
+            background: #020617;
+        }
+        
+        #certificate-capture-area {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 8px double #fbbf24;
+            padding: 20px;
+            width: 100%;
+            max-width: 380px;
+            position: relative;
+        }
+        
+        .cert-border {
+            border: 2px solid #fbbf24;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .btn-magic { 
+            background: #fbbf24; 
+            color: #78350f; 
+            padding: 12px 30px; 
+            border-radius: 50px; 
+            font-size: 16px; 
+            border-bottom: 4px solid #b45309; 
+            cursor: pointer;
+            margin-top: 10px;
+            width: 200px;
+        }
+
+        .btn-save {
+            background: #10b981;
+            color: white;
+            border-bottom-color: #047857;
+        }
+        
+        #feedback-text { 
+            position: absolute; 
+            top: 30%; 
+            width: 100%; 
+            text-align: center; 
+            font-size: 28px; 
+            pointer-events: none; 
+            z-index: 100; 
+        }
+        .flash-anim { animation: flash-up 0.8s ease-out forwards; }
+        @keyframes flash-up { 0% { opacity: 0; transform: scale(0.5); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-60px); } }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="game-header">
+        <div class="main-title">ELIZABETH'S TOGGLE PEGGLE</div>
+        <div class="stats-row">
+            <span>SCORE: <span id="score-val" class="text-yellow-400">0</span></span>
+            <span>LVL: <span id="level-val" class="text-yellow-400">1</span></span>
+            <button class="btn-quit" onclick="quitGame()">Quit Game</button>
+        </div>
+    </div>
+
+    <div id="inventory-container">
+        <div id="inventory-grid" class="coin-grid"></div>
+    </div>
+
+    <div id="canvas-wrapper">
+        <div id="feedback-text"></div>
+        <canvas id="canvas"></canvas>
+        
+        <div id="splash-screen" class="overlay">
+            <h1 class="text-4xl text-yellow-400 mb-4">LEVEL CLEAR!</h1>
+            <p class="text-xl mb-6">Final Score: <span id="final-score" class="text-yellow-400">0</span></p>
+            <button id="next-btn" onclick="nextLevel()" class="btn-magic">NEXT LEVEL</button>
+        </div>
+
+        <div id="certificate-screen" class="overlay">
+            <div id="certificate-capture-area">
+                <div class="cert-border">
+                    <h2 class="text-yellow-400 text-[10px] tracking-widest mb-1">OFFICIAL ACHIEVEMENT</h2>
+                    <h1 id="cert-title" class="text-2xl mb-4 text-white uppercase">PEGGLE CHAMPION</h1>
+                    <div class="space-y-2 text-left bg-black/40 p-4 rounded-lg text-sm">
+                        <p>PLAYER: <span class="text-yellow-400 float-right">ELIZABETH</span></p>
+                        <p>FINAL SCORE: <span id="cert-score" class="text-yellow-400 float-right">0</span></p>
+                        <p>MAX LEVEL: <span id="cert-levels" class="text-yellow-400 float-right">0</span></p>
+                        <p>TIME PLAYED: <span id="cert-time" class="text-yellow-400 float-right">0:00</span></p>
+                    </div>
+                    <p class="mt-4 text-[10px] italic opacity-70">"Awarded for exceptional skill and toggle-mastery."</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-col items-center gap-2 mt-4">
+                <button onclick="saveCertificate()" class="btn-magic btn-save">💾 SAVE TO DEVICE</button>
+                <button onclick="location.reload()" class="btn-magic">🔄 PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const { Engine, Render, Runner, Bodies, Composite, Events, Body } = Matter;
+
+    let level = 1;
+    let score = 0;
+    let inventory = 10;
+    let isGameOver = false;
+    let engine, world, render, runner;
+    let startTime = Date.now();
+
+    function init() {
+        const wrapper = document.getElementById('canvas-wrapper');
+        const width = wrapper.clientWidth;
+        const height = wrapper.clientHeight;
+
+        if (engine) {
+            Engine.clear(engine);
+            Render.stop(render);
+            Runner.stop(runner);
+            Composite.clear(world, false);
+        }
+
+        engine = Engine.create();
+        world = engine.world;
+        isGameOver = false;
+        inventory = 10;
+
+        render = Render.create({
+            canvas: document.getElementById('canvas'),
+            engine: engine,
+            options: { 
+                width: width, 
+                height: height, 
+                wireframes: false, 
+                background: 'transparent'
+            }
+        });
+
+        const floor = Bodies.rectangle(width/2, height + 50, width, 100, { isStatic: true, label: 'ground' });
+        const leftWall = Bodies.rectangle(-10, height/2, 20, height, { isStatic: true });
+        const rightWall = Bodies.rectangle(width + 10, height/2, 20, height, { isStatic: true });
+        Composite.add(world, [floor, leftWall, rightWall]);
+
+        const rows = 12;
+        const cols = 7;
+        const spacingX = width / (cols + 1);
+        const spacingY = (height * 0.7) / rows;
+
+        const allPegPositions = [];
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const x = spacingX + (c * spacingX) + (r % 2 === 0 ? spacingX/4 : -spacingX/4);
+                if (x < 20 || x > width - 20) continue;
+                allPegPositions.push({ x, y: 50 + (r * spacingY) });
+            }
+        }
+
+        allPegPositions.sort(() => Math.random() - 0.5);
+        const toggleCount = 6;
+        const goldCount = Math.floor(allPegPositions.length * 0.4);
+
+        allPegPositions.forEach((pos, index) => {
+            let label, color, stroke = "transparent", lineWidth = 0;
+            if (index < toggleCount) {
+                label = 'toggle-red'; color = '#ef4444'; stroke = '#fff'; lineWidth = 2;
+            } else if (index < toggleCount + goldCount) {
+                label = 'peg-gold'; color = '#fbbf24';
+            } else {
+                label = 'peg-null'; color = '#334155';
+            }
+
+            Composite.add(world, Bodies.circle(pos.x, pos.y, 8, {
+                isStatic: true, label, restitution: 0.9,
+                render: { fillStyle: color, strokeStyle: stroke, lineWidth: lineWidth }
+            }));
+        });
+
+        const bucketWidth = Math.max(20, 70 - (level * 10));
+        const bucketY = height - 60; 
+        const bucket = Bodies.rectangle(width/2, bucketY, bucketWidth, 15, {
+            isStatic: true, label: 'bucket',
+            render: { fillStyle: '#fbbf24' }
+        });
+        Composite.add(world, bucket);
+
+        Events.on(engine, 'beforeUpdate', () => {
+            if (isGameOver) return;
+            const time = engine.timing.timestamp;
+            const speed = 0.0018 + (level * 0.0003);
+            Body.setPosition(bucket, { 
+                x: width/2 + Math.sin(time * speed) * (width * 0.35), 
+                y: bucketY 
+            });
+
+            const activeCoins = world.bodies.filter(b => b.label === 'coin');
+            if (inventory === 0 && activeCoins.length === 0) {
+                isGameOver = true;
+                setTimeout(showResults, 1000);
+            }
+        });
+
+        Events.on(engine, 'collisionStart', (event) => {
+            event.pairs.forEach(pair => {
+                const { bodyA, bodyB } = pair;
+                const check = (peg, coin) => {
+                    if (coin.label === 'coin') {
+                        if (peg.label === 'peg-gold') { score += 50; updateUI(); }
+                        else if (peg.label === 'toggle-red') {
+                            score = Math.max(0, score - 100);
+                            peg.label = 'toggle-gold'; peg.render.fillStyle = '#fbbf24';
+                            showFeedback("REVERSE!", "#ef4444"); updateUI();
+                        }
+                        else if (peg.label === 'toggle-gold') {
+                            score += 150;
+                            peg.label = 'toggle-red'; peg.render.fillStyle = '#ef4444';
+                            showFeedback("TOGGLE!", "#4ade80"); updateUI();
+                        }
+                    }
+                };
+                check(bodyA, bodyB); check(bodyB, bodyA);
+
+                if ((bodyA.label === 'bucket' && bodyB.label === 'coin') || (bodyB.label === 'bucket' && bodyA.label === 'coin')) {
+                    const c = bodyA.label === 'coin' ? bodyA : bodyB;
+                    if (!c.used) { c.used = true; inventory++; showFeedback("+1 BALL", "#fbbf24"); Composite.remove(world, c); updateUI(); }
+                }
+                if ((bodyA.label === 'ground' && bodyB.label === 'coin') || (bodyB.label === 'ground' && bodyA.label === 'coin')) {
+                    Composite.remove(world, bodyA.label === 'coin' ? bodyA : bodyB);
+                }
+            });
+        });
+
+        Render.run(render);
+        runner = Runner.create();
+        Runner.run(runner, engine);
+        updateUI();
+    }
+
+    function shoot(clientX) {
+        if (inventory <= 0 || isGameOver) return;
+        inventory--;
+        updateUI();
+        const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+        const spawnX = clientX - canvasRect.left;
+        const coin = Bodies.circle(spawnX, 10, 10, { 
+            restitution: 0.5, label: 'coin', 
+            render: { fillStyle: '#fbbf24', strokeStyle: '#fff', lineWidth: 1 } 
+        });
+        Composite.add(world, coin);
+    }
+
+    function quitGame() {
+        isGameOver = true;
+        const playDuration = Math.floor((Date.now() - startTime) / 1000);
+        const mins = Math.floor(playDuration / 60);
+        const secs = playDuration % 60;
+        
+        let title = "PEGGLE ROOKIE";
+        if (score > 10000) title = "ELITE SLINGER";
+        else if (score > 5000) title = "TOGGLE MASTER";
+        else if (score > 2500) title = "BALL CHAMPION";
+        else if (score > 1000) title = "PEGGLE PRO";
+
+        document.getElementById('cert-title').innerText = title;
+        document.getElementById('cert-score').innerText = score;
+        document.getElementById('cert-levels').innerText = level;
+        document.getElementById('cert-time').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+        
+        document.getElementById('certificate-screen').style.display = 'flex';
+        Runner.stop(runner);
+    }
+
+    async function saveCertificate() {
+        const certElement = document.getElementById('certificate-capture-area');
+        try {
+            const canvas = await html2canvas(certElement, {
+                backgroundColor: '#020617',
+                scale: 2 // High resolution
+            });
+            const link = document.createElement('a');
+            link.download = `Elizabeth_Peggle_Certificate_${score}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch (err) {
+            console.error("Save failed", err);
+        }
+    }
+
+    function showFeedback(text, color) {
+        const el = document.getElementById('feedback-text');
+        el.innerText = text; el.style.color = color;
+        el.classList.remove('flash-anim'); void el.offsetWidth; el.classList.add('flash-anim');
+    }
+
+    function updateUI() {
+        document.getElementById('score-val').innerText = score;
+        document.getElementById('level-val').innerText = level;
+        const grid = document.getElementById('inventory-grid');
+        grid.innerHTML = '';
+        for (let i = 0; i < Math.max(inventory, 10); i++) {
+            const c = document.createElement('div');
+            c.className = i < inventory ? 'ui-coin' : 'ui-coin spent';
+            grid.appendChild(c);
+        }
+    }
+
+    function showResults() {
+        document.getElementById('final-score').innerText = score;
+        document.getElementById('splash-screen').style.display = 'flex';
+    }
+
+    function nextLevel() {
+        level++;
+        document.getElementById('splash-screen').style.display = 'none';
+        init();
+    }
+
+    document.getElementById('canvas').addEventListener('mousedown', e => shoot(e.clientX));
+    document.getElementById('canvas').addEventListener('touchstart', e => {
+        e.preventDefault();
+        shoot(e.touches[0].clientX);
+    }, { passive: false });
+
+    window.onload = init;
+</script>
+</body>
+</html>
