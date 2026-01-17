@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pirate Adventure (1978) - Reconstructed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+        
+        body {
+            background-color: #0a0a0a;
+            color: #00ff41;
+            font-family: 'Courier Prime', monospace;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #terminal {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            scroll-behavior: smooth;
+        }
+
+        #input-area {
+            background: #111;
+            border-top: 1px solid #333;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: #00ff41;
+            outline: none;
+            width: 100%;
+            font-size: 1.2rem;
+            margin-left: 10px;
+        }
+
+        .visual-container {
+            width: 100%;
+            height: 250px;
+            background: #000;
+            border-bottom: 2px solid #00ff41;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visual-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.6;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+        }
+
+        .scanline {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .glitch-text { text-shadow: 2px 0 #ff0000, -2px 0 #0000ff; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; }
+    </style>
+</head>
+<body>
+    <div class="scanline"></div>
+    
+    <div class="visual-container" id="visual-frame">
+        <div id="loading" class="loading-overlay">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white mb-2"></div>
+            <span>RECOGNIZING SCENE...</span>
+        </div>
+        <img id="scene-image" src="" alt="Scene Visual">
+    </div>
+
+    <div id="terminal">
+        <div class="mb-4">
+            <h1 class="text-2xl font-bold glitch-text">PIRATE ADVENTURE</h1>
+            <p class="text-sm opacity-70">RECONSTRUCTED KERNEL V5.1.4 | ORIGINAL BY SCOTT ADAMS (1978)</p>
+            <hr class="border-gray-800 my-2">
+        </div>
+        <div id="history"></div>
+    </div>
+
+    <div id="input-area">
+        <span class="text-xl font-bold">></span>
+        <input type="text" id="user-input" autofocus autocomplete="off" placeholder="Type command (e.g. GO NORTH, GET BOTTLE)...">
+    </div>
+
+    <script>
+        const apiKey = ""; // Runtime provided
+
+        // --- GAME DATA ---
+        const gameData = {
+            currentRoom: 1,
+            inventory: [],
+            flags: {
+                pirateHappy: false,
+                shipBuilt: false,
+                sneakersWorn: false
+            },
+            rooms: {
+                1: {
+                    name: "Flat in London",
+                    desc: "I am in a Flat in London. There's a flight of stairs and a rug here.",
+                    items: ["BOTTLE OF RUM", "SNEAKERS", "BOOK"],
+                    exits: { "UP": 2, "OUT": 3 }
+                },
+                2: {
+                    name: "Attic",
+                    desc: "I am in a dusty attic. There are some old boxes here.",
+                    items: ["HAMMER", "NAILS"],
+                    exits: { "DOWN": 1 }
+                },
+                3: {
+                    name: "Ledge",
+                    desc: "I am on a ledge of a very tall building. Be careful!",
+                    items: [],
+                    exits: { "IN": 1 }
+                },
+                4: {
+                    name: "Sandy Beach",
+                    desc: "I am on a sandy beach on a tropical isle. The sun is hot.",
+                    items: ["SHOVEL"],
+                    exits: { "EAST": 5 }
+                },
+                5: {
+                    name: "Meadow",
+                    desc: "I am in a lush meadow. A grass shack is to the East.",
+                    items: ["LUMBER"],
+                    exits: { "WEST": 4, "EAST": 6 }
+                },
+                6: {
+                    name: "Grass Shack",
+                    desc: "I am in a grass shack. A pirate is sitting here looking thirsty.",
+                    items: [],
+                    exits: { "WEST": 5 }
+                }
+            }
+        };
+
+        const terminal = document.getElementById('history');
+        const input = document.getElementById('user-input');
+        const imgElement = document.getElementById('scene-image');
+        const loading = document.getElementById('loading');
+
+        // --- ENGINE LOGIC ---
+
+        function print(text, type = 'normal') {
+            const div = document.createElement('div');
+            div.className = `mb-2 ${type === 'error' ? 'text-red-500' : type === 'info' ? 'text-yellow-500' : ''}`;
+            div.innerText = text;
+            terminal.appendChild(div);
+            document.getElementById('terminal').scrollTop = document.getElementById('terminal').scrollHeight;
+        }
+
+        async function generateSceneImage(prompt) {
+            if (!apiKey) {
+                // Default placeholder logic if no API available in static view
+                imgElement.src = `https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?q=80&w=800&auto=format&fit=crop`;
+                return;
+            }
+
+            loading.style.display = 'flex';
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        instances: [{ prompt: `Retro 8-bit adventure game style art: ${prompt}, low detail, pixelated, 1980s computer game aesthetic.` }],
+                        parameters: { sampleCount: 1 }
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.predictions && data.predictions[0]) {
+                    imgElement.src = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+                }
+            } catch (e) {
+                console.error("Image generation failed", e);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function look() {
+            const room = gameData.rooms[gameData.currentRoom];
+            print(`--- ${room.name} ---`, 'info');
+            print(room.desc);
+            if (room.items.length > 0) {
+                print(`Visible items: ${room.items.join(', ')}`);
+            }
+            print(`Exits: ${Object.keys(room.exits).join(', ')}`);
+            generateSceneImage(room.name + " " + room.desc);
+        }
+
+        function processCommand(cmd) {
+            const parts = cmd.toUpperCase().split(' ');
+            const verb = parts[0];
+            const noun = parts[1] || "";
+
+            print(`> ${cmd}`, 'info');
+
+            // Movement
+            const directions = ["NORTH", "SOUTH", "EAST", "WEST", "UP", "DOWN", "IN", "OUT"];
+            if (directions.includes(verb) || (verb === "GO" && directions.includes(noun))) {
+                const dir = directions.includes(verb) ? verb : noun;
+                const room = gameData.rooms[gameData.currentRoom];
+                if (room.exits[dir]) {
+                    // Specific Logic for Ledge
+                    if (gameData.currentRoom === 3 && !gameData.flags.sneakersWorn) {
+                        print("You slipped on the ledge and fell! Game Over.");
+                        resetGame();
+                        return;
+                    }
+                    gameData.currentRoom = room.exits[dir];
+                    look();
+                } else {
+                    print("You can't go that way.");
+                }
+                return;
+            }
+
+            // Commands
+            switch (verb) {
+                case "LOOK":
+                case "L":
+                    look();
+                    break;
+                case "GET":
+                case "TAKE":
+                    const roomItems = gameData.rooms[gameData.currentRoom].items;
+                    const itemIdx = roomItems.findIndex(i => i.includes(noun));
+                    if (itemIdx > -1) {
+                        const item = roomItems.splice(itemIdx, 1)[0];
+                        gameData.inventory.push(item);
+                        print(`Taken.`);
+                    } else {
+                        print("I don't see that here.");
+                    }
+                    break;
+                case "INVENTORY":
+                case "INV":
+                case "I":
+                    if (gameData.inventory.length === 0) print("You are carrying nothing.");
+                    else print(`You are carrying: ${gameData.inventory.join(', ')}`);
+                    break;
+                case "SAY":
+                    if (noun === "YOHO" && gameData.currentRoom === 3) {
+                        print("Everything spins around...");
+                        gameData.currentRoom = 4;
+                        look();
+                    } else {
+                        print(`Nothing happens.`);
+                    }
+                    break;
+                case "WEAR":
+                    if (noun.includes("SNEAKERS") && gameData.inventory.includes("SNEAKERS")) {
+                        gameData.flags.sneakersWorn = true;
+                        print("You are now wearing the sneakers.");
+                    } else {
+                        print("You don't have that.");
+                    }
+                    break;
+                case "GIVE":
+                    if (noun.includes("RUM") && gameData.currentRoom === 6 && gameData.inventory.includes("BOTTLE OF RUM")) {
+                        print("The pirate happily takes the rum and hands you some SHIP PLANS before staggering away.");
+                        gameData.inventory = gameData.inventory.filter(i => i !== "BOTTLE OF RUM");
+                        gameData.inventory.push("SHIP PLANS");
+                        gameData.flags.pirateHappy = true;
+                    } else {
+                        print("You can't do that.");
+                    }
+                    break;
+                case "HELP":
+                    print("Try simple commands like: GO NORTH, GET BOOK, LOOK, INV, WEAR SNEAKERS.");
+                    break;
+                default:
+                    print("I don't understand that command.");
+            }
+        }
+
+        function resetGame() {
+            gameData.currentRoom = 1;
+            gameData.inventory = [];
+            gameData.flags.pirateHappy = false;
+            gameData.flags.sneakersWorn = false;
+            terminal.innerHTML = "";
+            print("GAME REBOOTED...");
+            look();
+        }
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const val = input.value.trim();
+                if (val) processCommand(val);
+                input.value = "";
+            }
+        });
+
+        window.onload = () => {
+            print("Initializing Adventure Kernel...");
+            look();
+        };
+    </script>
+</body>
+</html>
