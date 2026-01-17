@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Quest I - Cloud Cartridge Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap');
+        
+        body {
+            background-color: #000511;
+            color: #00f2ff;
+            font-family: 'Share Tech Mono', monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #terminal {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: rgba(0, 10, 20, 0.9);
+            border: 1px solid #00f2ff;
+            margin: 10px;
+            box-shadow: inset 0 0 20px #0044ff;
+        }
+
+        .visual-frame {
+            height: 280px;
+            background: #000;
+            border-bottom: 3px solid #00f2ff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #scene-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.6;
+            filter: contrast(1.2) brightness(0.8);
+        }
+
+        #input-area {
+            padding: 15px;
+            background: #001122;
+            border-top: 1px solid #00f2ff;
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            outline: none;
+            width: 100%;
+            font-size: 1.2rem;
+            margin-left: 10px;
+            text-shadow: 0 0 5px #00f2ff;
+        }
+
+        .status-bar {
+            background: #00f2ff;
+            color: #000;
+            padding: 4px 15px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+
+        .alert-box {
+            color: #ff0044;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body>
+    <div class="status-bar">
+        <span>SCORE: <span id="score">0</span>/250</span>
+        <span class="alert-box">AUTO-DESTRUCT: <span id="timer">15:00</span></span>
+        <span>LOCATION: <span id="loc-display">ARCADA</span></span>
+    </div>
+
+    <div class="visual-frame">
+        <img id="scene-image" src="" alt="Space Scene">
+    </div>
+
+    <div id="terminal">
+        <div class="mb-4">
+            <h1 class="text-2xl font-bold tracking-widest text-white" style="font-family: 'Orbitron';">SPACE QUEST</h1>
+            <p class="text-xs text-blue-400">THE SARIEN ENCOUNTER (CHAPTER ONE)</p>
+            <hr class="border-blue-900 my-2">
+        </div>
+        <div id="history"></div>
+    </div>
+
+    <div id="input-area">
+        <span class="text-xl font-bold">></span>
+        <input type="text" id="user-input" autofocus autocomplete="off" placeholder="Enter command...">
+    </div>
+
+    <script>
+        const apiKey = "";
+        const history = document.getElementById('history');
+        const input = document.getElementById('user-input');
+        const timerDisplay = document.getElementById('timer');
+
+        const gameState = {
+            room: "START",
+            score: 0,
+            inventory: ["CARTRIDGE"],
+            timeLeft: 900, // 15 minutes
+            isDead: false
+        };
+
+        const rooms = {
+            "START": {
+                name: "Janitorial Closet",
+                desc: "You wake up in your favorite place: the janitorial closet of the Starship Arcada. Your nap was interrupted by a massive explosion. Red lights are flashing.",
+                exits: { "OUT": "HALLWAY" },
+                prompt: "Interior of a sci-fi janitorial closet, mops and buckets, futuristic spaceship aesthetic, flashing red emergency lights, 1980s EGA pixel art."
+            },
+            "HALLWAY": {
+                name: "Starship Hallway",
+                desc: "The hallway is filled with smoke. To the East is the escape pod bay. To the West is the bridge. A dead crew member lies nearby.",
+                exits: { "WEST": "BRIDGE", "EAST": "POD_BAY", "IN": "START" },
+                prompt: "A futuristic spaceship corridor filled with smoke, dead crew member on floor, blinking computer panels, pixel art style."
+            },
+            "BRIDGE": {
+                name: "Arcada Bridge",
+                desc: "The bridge is a mess of sparks and shattered glass. The Data Retrieval console is still flickering.",
+                exits: { "EAST": "HALLWAY" },
+                prompt: "The bridge of a starship, destroyed consoles, sparks flying, outer space visible through shattered window, retro sci-fi art."
+            },
+            "POD_BAY": {
+                name: "Escape Pod Bay",
+                desc: "You see the last remaining escape pod. A Sarien guard is patrolling the far end of the bay! He hasn't seen you yet.",
+                exits: { "WEST": "HALLWAY", "POD": "WIN" },
+                prompt: "A spaceship escape pod bay, one small round pod remaining, sci-fi hangar, dramatic space lighting."
+            }
+        };
+
+        function print(msg, type = "normal") {
+            const d = document.createElement('div');
+            d.className = `mb-2 ${type === 'system' ? 'text-blue-300 italic' : type === 'death' ? 'text-red-500 font-bold' : ''}`;
+            d.innerText = msg;
+            history.appendChild(d);
+            document.getElementById('terminal').scrollTop = document.getElementById('terminal').scrollHeight;
+        }
+
+        async function updateVisual() {
+            if (!apiKey) {
+                document.getElementById('scene-image').src = "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800&q=80";
+                return;
+            }
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+                    method: 'POST',
+                    body: JSON.stringify({ instances: [{ prompt: rooms[gameState.room].prompt }] })
+                });
+                const data = await res.json();
+                if (data.predictions?.[0]) {
+                    document.getElementById('scene-image').src = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
+                }
+            } catch (e) {}
+        }
+
+        function look() {
+            const r = rooms[gameState.room];
+            document.getElementById('loc-display').innerText = r.name.toUpperCase();
+            print(`--- ${r.name} ---`, "system");
+            print(r.desc);
+            updateVisual();
+        }
+
+        function handleInput(raw) {
+            if (gameState.isDead) return;
+            const cmd = raw.toUpperCase().split(' ');
+            const verb = cmd[0];
+            const noun = cmd[1] || "";
+            print(`> ${raw}`);
+
+            if (["NORTH", "SOUTH", "EAST", "WEST", "UP", "DOWN", "OUT", "IN"].includes(verb)) {
+                const next = rooms[gameState.room].exits[verb];
+                if (next) {
+                    if (next === "WIN") {
+                        print("You jump into the pod and launch! You escaped the Arcada just as it blew into space dust!", "system");
+                        print("CONGRATULATIONS, ROGER WILCO!", "text-yellow-400 font-bold");
+                        gameState.isDead = true;
+                    } else {
+                        gameState.room = next;
+                        look();
+                    }
+                } else {
+                    print("You can't go that way.");
+                }
+                return;
+            }
+
+            switch(verb) {
+                case "LOOK": look(); break;
+                case "SEARCH":
+                    if (gameState.room === "HALLWAY") {
+                        print("You find a Keycard on the crew member.");
+                        gameState.inventory.push("KEYCARD");
+                        gameState.score += 5;
+                        document.getElementById('score').innerText = gameState.score;
+                    } else {
+                        print("You find nothing but dust and your own insignificance.");
+                    }
+                    break;
+                case "INV": print("You have: " + gameState.inventory.join(", ")); break;
+                case "HELP": print("Try: GO EAST, SEARCH BODY, LOOK, INV, ENTER POD."); break;
+                case "ENTER":
+                    if (noun === "POD" && gameState.room === "POD_BAY") {
+                        handleInput("POD");
+                    } else {
+                        print("Enter what?");
+                    }
+                    break;
+                default: print("The janitor is confused.");
+            }
+        }
+
+        setInterval(() => {
+            if (gameState.isDead) return;
+            gameState.timeLeft--;
+            const mins = Math.floor(gameState.timeLeft / 60);
+            const secs = gameState.timeLeft % 60;
+            timerDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            if (gameState.timeLeft <= 0) {
+                print("BOOM! The Arcada explodes. You are now space debris.", "death");
+                gameState.isDead = true;
+            }
+        }, 1000);
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const val = input.value.trim();
+                if (val) handleInput(val);
+                input.value = "";
+            }
+        });
+
+        window.onload = () => {
+            print("Arcada Defense System: ALERT! Intruder detected.");
+            look();
+        };
+    </script>
+</body>
+</html>
