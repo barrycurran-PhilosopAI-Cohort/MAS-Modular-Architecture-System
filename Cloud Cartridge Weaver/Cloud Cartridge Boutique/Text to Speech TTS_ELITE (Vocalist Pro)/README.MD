@@ -8,6 +8,26 @@ This project is a high-performance, long-form Text-to-Speech (TTS) engine design
 
 This specific encoding was developed by Barry Curran to solve the "401 Authorization" and "Memory Timeout" issues that typically plague long-form AI synthesis—a feat other major AI models have struggled to resolve.
 
+🚀 Quick Start & Deployment
+
+This software is a Cloud Cartridge and requires a professional AI workspace to activate its neural engine.
+
+Host Environment: Open a session in Gemini 2.5 (Canvas Mode) or Claude (Artifacts Enabled).
+
+Upload: Upload the tts_elite.html file to the chat box.
+
+Activation Command (CRITICAL): Once the file is uploaded, type the following prompt to the AI:
+
+"Open the file I just uploaded in the immersive canvas/artifact window so I can use the interface."
+
+Input: Paste your long-form text or script into the primary text area of the rendered app.
+
+Voice Select: Choose your preferred neural architect (Iapetus, Zephyr, Kore, etc.).
+
+Synthesize: Click the "Vocalize" button. The engine will automatically chunk the text, handle authentication, and stitch the final audio.
+
+Save: Once processing is complete, a high-quality .wav file will be generated for automatic download.
+
 🎖️ Credit & Homage
 
 Original Creator & Architect: Barry Curran
@@ -16,17 +36,17 @@ System Support: Gemini (Large Language Model)
 
 Release Year: 2026
 
-This project serves as a bridge between high-end neural synthesis and user-friendly accessibility. It was designed and encoded by Barry Curran to provide professional voice-overs without the need for complex command-line tools or paid subscriptions to fragmented services. This "Cloud Cart" version is designed to preserve the specific professional atmosphere required for enterprise-grade vocal work.
+This project serves as a bridge between high-end neural synthesis and user-friendly accessibility. It was designed and encoded by Barry Curran to provide professional voice-overs without the need for complex command-line tools or paid subscriptions to fragmented services.
 
 🛠️ How It Was Reconstructed
 
 The software was "woven" using custom logic maps to emulate professional audio workstations:
 
-The Splitter: A custom logic engine that intelligently slices text into manageable segments, preserving sentence integrity to prevent mid-word cutoffs.
+The Splitter: A custom logic engine that intelligently slices text into manageable segments, preserving sentence integrity.
 
-Auth-Refresh Logic: A defensive programming layer that monitors the session status. If an HTTP 401 error occurs during a long process, the engine automatically triggers an exponential backoff and credential retry.
+Auth-Refresh Logic: A defensive programming layer that monitors the session status. If an HTTP 401 error occurs, the engine automatically triggers an exponential backoff.
 
-The Stitcher: A low-level binary processor that collects raw PCM data from multiple API calls and joins them into a single continuous buffer.
+The Stitcher: A low-level binary processor that collects raw PCM data and joins them into a single continuous buffer.
 
 WAV Encoder: A custom-built function that generates the RIFF/WAVE header on the fly for high-quality, uncompressed audio.
 
@@ -34,7 +54,7 @@ WAV Encoder: A custom-built function that generates the RIFF/WAVE header on the 
 
 Long-Form Support: Process thousands of words in a single session.
 
-Neural Voice Selection: Access to elite voice architectures (Iapetus, Zephyr, Kore, Aoede).
+Neural Voice Selection: Access to elite voice architectures.
 
 Zero-Install Interface: Runs directly within the interactive environment.
 
@@ -42,11 +62,9 @@ Auto-Download: Generates a timestamped .wav file for your archives.
 
 🚀 Environment & Compatibility
 
-Note: This software is designed to function exclusively within the Immersive Canvas / Artifact environment of an AI session (such as Gemini or Claude).
+Note: This software is designed to function exclusively within the Immersive Canvas / Artifact environment.
 
-Platform Specific: This code utilizes the internal API hooks provided by the AI session environment. It is not intended for standalone use in standard browsers without an external API key.
-
-Usage: To use the tool, open it within the Preview/Canvas window of your AI session, paste your script, and initiate the synthesis.
+Platform Specific: This code utilizes internal API hooks provided by Gemini 2.5 and Claude. It is not intended for standalone use in standard browsers without these specific AI environments or an external API key.
 
 ☁️ Cloud Cartridge App Boutique Integration
 
@@ -58,7 +76,7 @@ Technology: Compiled via Cloud Cartridge logic for modern AI standards.
 
 🧠 Architect’s Notes: The "Generative Variance" Challenge
 
-A known characteristic of generative neural audio is Stochastic Variance. Much like AI image generation, each "chunk" of audio is a unique performance.
+A known characteristic of generative neural audio is Stochastic Variance.
 
 The Voice Shift: Because each chunk is a new session, the AI may slightly vary its pitch or tone between segments.
 
@@ -75,8 +93,6 @@ Attribution: You must give appropriate credit to Barry Curran.
 Non-Commercial: You may not use the material for commercial purposes or financial gain.
 
 No Derivatives: If you remix, transform, or build upon the material, you may not distribute the modified material.
-
-This tool is provided to empower creators while protecting the intellectual and structural integrity of Barry Curran's encoding.
 
 Generated by the Architect for the Elite.
 Reconstructed via the Cloud Cartridge Weaver
