@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocalist Pro - Long-Form TTS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0a0a0a; color: #e5e5e5; min-height: 100vh; }
+        .glass-panel { background: rgba(23, 23, 23, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gradient-text { background: linear-gradient(to right, #60a5fa, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-primary { background: linear-gradient(to bottom right, #3b82f6, #8b5cf6); transition: all 0.3s ease; }
+        .btn-primary:hover:not(:disabled) { filter: brightness(1.2); transform: translateY(-1px); }
+        .btn-primary:disabled { background: #404040; cursor: not-allowed; opacity: 0.7; }
+        .loader { border: 2px solid rgba(255,255,255,0.2); border-top: 2px solid #fff; border-radius: 50%; width: 20px; height: 20px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .progress-bar { transition: width 0.4s ease; }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex flex-col items-center">
+
+    <div class="max-w-4xl w-full space-y-8">
+        <header class="text-center space-y-2">
+            <div class="flex justify-center items-center gap-3">
+                <h1 class="text-5xl font-extrabold tracking-tight gradient-text uppercase">Vocalist Pro</h1>
+                <span class="bg-purple-500/20 text-purple-400 text-[10px] px-2 py-1 rounded-full border border-purple-500/30 font-bold">STABLE V2</span>
+            </div>
+            <p class="text-neutral-400 font-light">Auto-Stitching & Auth-Refresh Enabled</p>
+        </header>
+
+        <main class="glass-panel rounded-3xl p-6 md:p-10 space-y-6 shadow-2xl">
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <label class="text-sm font-semibold text-neutral-400 uppercase tracking-widest">Input Script</label>
+                    <span id="charCount" class="text-[10px] text-neutral-500 font-mono">0 chars</span>
+                </div>
+                <textarea id="textInput" 
+                    placeholder="Paste your long text here... now with Auth-Refresh to prevent 401 errors."
+                    class="w-full h-48 bg-neutral-900/50 border border-neutral-800 rounded-2xl p-5 text-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all resize-none"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-neutral-400 uppercase tracking-widest">Voice Architecture</label>
+                    <select id="voiceSelect" class="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                        <option value="Iapetus" selected>Iapetus (Deep/Pro)</option>
+                        <option value="Zephyr">Zephyr (Modern/Fast)</option>
+                        <option value="Kore">Kore (Smooth/Calm)</option>
+                        <option value="Aoede">Aoede (Bright/Clear)</option>
+                    </select>
+                </div>
+
+                <div class="flex items-end">
+                    <button id="generateBtn" class="btn-primary w-full h-12 rounded-xl font-bold flex items-center justify-center gap-2">
+                        <span id="btnText">START SYNTHESIS</span>
+                        <div id="btnLoader" class="hidden loader"></div>
+                    </button>
+                </div>
+            </div>
+
+            <div id="statusContainer" class="hidden space-y-3">
+                <div class="flex justify-between text-xs font-bold uppercase tracking-tighter text-neutral-400">
+                    <span id="statusText">Processing...</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="w-full bg-neutral-800 rounded-full h-2 overflow-hidden">
+                    <div id="progressBar" class="progress-bar bg-blue-500 h-full w-0"></div>
+                </div>
+            </div>
+
+            <div id="audioContainer" class="hidden space-y-4 pt-4 border-t border-white/5">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-neutral-500 uppercase">Stitched Master Track</span>
+                    <button id="downloadBtn" class="text-blue-400 hover:text-blue-300 text-xs font-bold uppercase underline">Download Full .wav</button>
+                </div>
+                <audio id="audioPlayer" controls class="w-full"></audio>
+            </div>
+            
+            <div id="errorBox" class="hidden p-4 rounded-xl text-sm border bg-red-500/10 border-red-500/20 text-red-400"></div>
+        </main>
+    </div>
+
+    <script>
+        // Use standard environment key, but handle potential refresh
+        let currentApiKey = ""; 
+        const CHUNK_SIZE = 3000; 
+
+        const elements = {
+            btn: document.getElementById('generateBtn'),
+            btnText: document.getElementById('btnText'),
+            loader: document.getElementById('btnLoader'),
+            input: document.getElementById('textInput'),
+            voice: document.getElementById('voiceSelect'),
+            status: document.getElementById('statusContainer'),
+            statusText: document.getElementById('statusText'),
+            progress: document.getElementById('progressBar'),
+            percent: document.getElementById('progressPercent'),
+            audioBox: document.getElementById('audioContainer'),
+            player: document.getElementById('audioPlayer'),
+            error: document.getElementById('errorBox'),
+            count: document.getElementById('charCount'),
+            dl: document.getElementById('downloadBtn')
+        };
+
+        elements.input.addEventListener('input', () => {
+            elements.count.innerText = `${elements.input.value.length} chars`;
+        });
+
+        function splitText(text, size) {
+            const chunks = [];
+            let i = 0;
+            while (i < text.length) {
+                let end = i + size;
+                if (end < text.length) {
+                    const lastSpace = text.lastIndexOf(' ', end);
+                    if (lastSpace > i) end = lastSpace;
+                }
+                chunks.push(text.substring(i, end).trim());
+                i = end;
+            }
+            return chunks;
+        }
+
+        async function fetchAudioChunk(text, voice, attempt = 1) {
+            // Check if key is empty (environment usually injects it, but we handle empty string safely)
+            const activeKey = typeof apiKey !== 'undefined' ? apiKey : currentApiKey;
+            
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${activeKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: text }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }
+                        }
+                    })
+                });
+
+                if (response.status === 401) {
+                    throw new Error("AUTH_EXPIRED");
+                }
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const result = await response.json();
+                const b64 = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                
+                if (!b64) throw new Error("Empty Response");
+                return b64;
+            } catch (err) {
+                // Handle 401 specifically by waiting briefly (letting the system potentially refresh the token)
+                if (err.message === "AUTH_EXPIRED" || attempt < 3) {
+                    const delay = 1000 * Math.pow(2, attempt); // Exponential backoff
+                    await new Promise(r => setTimeout(r, delay));
+                    return fetchAudioChunk(text, voice, attempt + 1);
+                }
+                throw err;
+            }
+        }
+
+        elements.btn.addEventListener('click', async () => {
+            const rawText = elements.input.value.trim();
+            if (!rawText) return;
+
+            elements.btn.disabled = true;
+            elements.loader.classList.remove('hidden');
+            elements.btnText.innerText = "SYNTHESIZING...";
+            elements.error.classList.add('hidden');
+            elements.audioBox.classList.add('hidden');
+            elements.status.classList.remove('hidden');
+
+            const chunks = splitText(rawText, CHUNK_SIZE);
+            const voice = elements.voice.value;
+            const pcmChunks = [];
+
+            try {
+                for (let i = 0; i < chunks.length; i++) {
+                    elements.statusText.innerText = `Processing Chunk ${i + 1} of ${chunks.length}...`;
+                    const progress = Math.round(((i) / chunks.length) * 100);
+                    elements.progress.style.width = `${progress}%`;
+                    elements.percent.innerText = `${progress}%`;
+
+                    const base64 = await fetchAudioChunk(chunks[i], voice);
+                    const binary = atob(base64);
+                    const bytes = new Uint8Array(binary.length);
+                    for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
+                    pcmChunks.push(bytes);
+                }
+
+                elements.statusText.innerText = "Finalizing master track...";
+                elements.progress.style.width = `100%`;
+                elements.percent.innerText = `100%`;
+
+                const totalLen = pcmChunks.reduce((acc, curr) => acc + curr.length, 0);
+                const masterPcm = new Uint8Array(totalLen);
+                let offset = 0;
+                for (const chunk of pcmChunks) {
+                    masterPcm.set(chunk, offset);
+                    offset += chunk.length;
+                }
+
+                const wav = pcmToWav(masterPcm, 24000);
+                masterBlob = new Blob([wav], { type: 'audio/wav' });
+                elements.player.src = URL.createObjectURL(masterBlob);
+                elements.audioBox.classList.remove('hidden');
+                elements.statusText.innerText = "Complete!";
+
+            } catch (err) {
+                let msg = err.message;
+                if (msg === "AUTH_EXPIRED") msg = "Authentication session timed out. Please refresh the page and try again.";
+                elements.error.innerText = `Error: ${msg}`;
+                elements.error.classList.remove('hidden');
+            } finally {
+                elements.btn.disabled = false;
+                elements.loader.classList.add('hidden');
+                elements.btnText.innerText = "START SYNTHESIS";
+            }
+        });
+
+        elements.dl.addEventListener('click', () => {
+            if (!masterBlob) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(masterBlob);
+            a.download = `vocalist_pro_export_${Date.now()}.wav`;
+            a.click();
+        });
+
+        function pcmToWav(bytes, sampleRate) {
+            const len = bytes.length;
+            const wavHeader = new ArrayBuffer(44);
+            const view = new DataView(wavHeader);
+            const writeString = (v, o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + len, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); 
+            view.setUint16(22, 1, true); 
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true); 
+            view.setUint16(32, 2, true); 
+            view.setUint16(34, 16, true); 
+            writeString(view, 36, 'data');
+            view.setUint32(40, len, true);
+
+            const combined = new Uint8Array(44 + len);
+            combined.set(new Uint8Array(wavHeader), 0);
+            combined.set(bytes, 44);
+            return combined.buffer;
+        }
+    </script>
+</body>
+</html>
