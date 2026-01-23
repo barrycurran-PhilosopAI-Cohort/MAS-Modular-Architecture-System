@@ -1,0 +1,57 @@
+name: Repository Traffic Logger
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs every night at midnight
+  workflow_dispatch: # Allows you to run it manually whenever you want
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Get Traffic Stats
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p traffic_stats
+          
+          # Get Clones
+          curl -H "Authorization: token $GITHUB_TOKEN" \
+               -H "Accept: application/vnd.github.v3+json" \
+               https://api.github.com/repos/${{ github.repository }}/traffic/clones > traffic_stats/clones_raw.json
+          
+          # Get Views
+          curl -H "Authorization: token $GITHUB_TOKEN" \
+               -H "Accept: application/vnd.github.v3+json" \
+               https://api.github.com/repos/${{ github.repository }}/traffic/views > traffic_stats/views_raw.json
+
+      - name: Archive Stats
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          # Simple extraction of the totals to a CSV for long-term tracking
+          CLONES=$(grep -oP '"count":\s*\K\d+' traffic_stats/clones_raw.json | head -1)
+          UNIQUE_CLONES=$(grep -oP '"uniques":\s*\K\d+' traffic_stats/clones_raw.json | head -1)
+          VIEWS=$(grep -oP '"count":\s*\K\d+' traffic_stats/views_raw.json | head -1)
+          UNIQUE_VIEWS=$(grep -oP '"uniques":\s*\K\d+' traffic_stats/views_raw.json | head -1)
+          
+          # Create header if it doesn't exist
+          if [ ! -f traffic_stats/history.csv ]; then
+            echo "Date,Total Clones,Unique Clones,Total Views,Unique Views" > traffic_stats/history.csv
+          fi
+          
+          # Append the 14-day rolling snapshot for today
+          echo "$DATE,$CLONES,$UNIQUE_CLONES,$VIEWS,$UNIQUE_VIEWS" >> traffic_stats/history.csv
+
+      - name: Commit and Push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add traffic_stats/history.csv
+          git commit -m "Update traffic stats for $(date +%Y-%m-%d)" || exit 0
+          git push
