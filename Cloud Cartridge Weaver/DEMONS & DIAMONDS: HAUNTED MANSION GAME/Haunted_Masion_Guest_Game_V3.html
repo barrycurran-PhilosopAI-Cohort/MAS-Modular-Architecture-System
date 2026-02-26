@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demons & Diamonds - Haunted Mansion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --haunted-blue: #1a202c;
+            --blood-red: #822727;
+        }
+
+        body {
+            background-color: #0a0a0c;
+            color: white;
+            font-family: 'Special Elite', cursive;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .winter-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+            z-index: 10;
+        }
+
+        .snow {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 11;
+            background-image: url('https://www.transparenttextures.com/patterns/stardust.png');
+            opacity: 0.3;
+        }
+
+        .mansion-container {
+            position: relative;
+            max-width: 800px;
+            margin: 20px auto;
+            background: #2d3748;
+            border: 8px solid #1a202c;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            background-image: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://www.transparenttextures.com/patterns/dark-matter.png');
+        }
+
+        .house-front {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            perspective: 1000px;
+        }
+
+        .opening {
+            aspect-ratio: 3/4;
+            background: #000;
+            border: 3px solid #4a5568;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s;
+            overflow: hidden;
+        }
+
+        .opening:hover {
+            transform: scale(1.05);
+            border-color: #718096;
+        }
+
+        .door-panel {
+            position: absolute;
+            top: 0; left: 0; width: 100.5%; height: 100.5%; /* Slight overlap to prevent gaps */
+            background: #4a3728;
+            z-index: 5;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #2d1f14;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+            transform-origin: left;
+        }
+
+        .opening.revealed .door-panel {
+            transform: rotateY(-115deg);
+        }
+
+        .content {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            background: #050505;
+        }
+
+        .demon { color: #f56565; filter: drop-shadow(0 0 12px red); }
+        .treasure { color: #ecc94b; filter: drop-shadow(0 0 12px gold); }
+
+        .gate {
+            position: absolute;
+            bottom: -20px;
+            left: -10%;
+            width: 120%;
+            height: 100px;
+            background: url('https://www.transparenttextures.com/patterns/iron-grip.png');
+            opacity: 0.5;
+            pointer-events: none;
+            border-top: 4px solid #2d3748;
+        }
+
+        .stats-bar {
+            background: rgba(0,0,0,0.85);
+            padding: 15px;
+            border-radius: 8px;
+            border-bottom: 3px solid var(--blood-red);
+        }
+
+        .btn-action {
+            background: var(--blood-red);
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover:not(:disabled) {
+            background: #a22;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255,0,0,0.3);
+        }
+
+        .btn-action:disabled {
+            background: #333;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #certificate {
+            font-family: 'Creepster', cursive;
+            background: #fdf6e3;
+            background-image: url('https://www.transparenttextures.com/patterns/old-map.png');
+            color: #2d1f14;
+            border: 15px double #2d1f14;
+            padding: 40px;
+            text-align: center;
+            width: 600px;
+            margin: 0 auto;
+        }
+
+        .cert-outer-wrap {
+            padding: 20px;
+            background: #2d1f14;
+            border-radius: 5px;
+            display: inline-block;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="winter-overlay"></div>
+    <div class="snow"></div>
+
+    <div id="game-ui" class="container mx-auto px-4 py-8 relative z-20">
+        <div class="text-center mb-8">
+            <h1 class="text-6xl font-bold mb-2 tracking-widest text-red-700" style="font-family: 'Nosifer', cursive;">DEMONS & DIAMONDS</h1>
+            <p class="text-gray-400 italic">"A Cloud Cartridge Survival Challenge"</p>
+        </div>
+
+        <!-- Setup/Instruction Screen -->
+        <div id="setup-screen" class="max-w-xl mx-auto bg-gray-900 p-8 rounded border border-gray-700 shadow-2xl">
+            <div class="mb-8 text-gray-300 text-sm space-y-4 border-b border-gray-800 pb-6">
+                <h3 class="text-xl text-red-500 font-bold mb-2 uppercase tracking-tighter">Survivor Briefing</h3>
+                <p>• There are <span class="text-red-500 font-bold">11 total openings</span> in the mansion.</p>
+                <p>• <span class="text-yellow-500 font-bold">8 Diamonds</span> and <span class="text-red-600 font-bold">3 Demons</span> are hidden at random.</p>
+                <p>• Score <span class="text-yellow-500 font-bold">5 points</span> per window and <span class="text-yellow-500 font-bold">25 points</span> for the main door.</p>
+                <p>• <span class="text-white font-bold">POINT MULTIPLIER:</span> Scores <span class="text-green-500 font-bold">DOUBLE</span> every level!</p>
+                <p>• Complete <span class="text-red-500 font-bold">10 Levels</span> to claim the Master's Certificate.</p>
+                <p>• Find at least one diamond to unlock the escape to the next round.</p>
+            </div>
+            
+            <h2 class="text-2xl mb-4 text-center text-red-500">Enter Your Name</h2>
+            <input type="text" id="player-name" class="w-full bg-black border border-gray-600 p-4 mb-6 text-center text-xl text-white focus:outline-none focus:border-red-500 rounded" placeholder="Your Name">
+            <button onclick="startGame()" class="btn-action w-full text-2xl text-white py-4">ENTER THE GROUNDS</button>
+        </div>
+
+        <!-- Main Gameplay Screen -->
+        <div id="game-screen" class="hidden">
+            <div class="stats-bar flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <div class="text-center md:text-left">
+                    <span class="text-gray-400">ROUND:</span> <span id="level-display" class="text-red-500 text-3xl font-bold">1</span> / 10
+                    <span class="ml-8 text-gray-400">SCORE:</span> <span id="score-display" class="text-yellow-500 text-3xl font-bold">0</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <button id="next-level-btn" onclick="goToNextLevel()" disabled class="btn-action text-white px-8 py-3">ADVENTURE TO ROUND <span id="next-round-num">2</span></button>
+                    <span id="hint-text" class="text-xs text-gray-500 mt-2 opacity-0 transition-opacity duration-500">The path to the next floor is clear...</span>
+                </div>
+            </div>
+
+            <div class="mansion-container">
+                <div class="house-front" id="mansion-grid"></div>
+                <div class="gate"></div>
+                <div class="mt-8 grid grid-cols-2 text-center text-sm text-gray-400 bg-black/40 p-4 rounded-lg">
+                    <div>Window: <span id="val-window" class="text-yellow-500 font-bold">5</span> pts</div>
+                    <div>Main Door: <span id="val-door" class="text-yellow-500 font-bold">25</span> pts</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over / Victory Certificate -->
+        <div id="end-screen" class="hidden text-center">
+            <div class="cert-outer-wrap mb-8">
+                <div id="certificate">
+                    <h1 class="text-5xl mb-4" id="cert-title">CERTIFICATE OF BRAVERY</h1>
+                    <p class="text-2xl mb-2">This certifies that</p>
+                    <h2 id="cert-name" class="text-4xl underline mb-4 italic">Survivor</h2>
+                    <p class="text-xl">conquered the Haunted Mansion and reached</p>
+                    <h3 class="text-3xl my-2">Level <span id="cert-level">1</span></h3>
+                    <p class="text-xl">with a Grand Score of</p>
+                    <h3 class="text-4xl text-red-800 my-2" id="cert-score">0</h3>
+                    <p class="mt-12 italic text-lg border-t border-gray-400 pt-4">Provided by Barry Curran's PhilosopAI-Cohort</p>
+                    <div class="mt-4 text-xs opacity-40">Cloud Cartridge System #1963-BC</div>
+                </div>
+            </div>
+            
+            <div class="max-w-md mx-auto flex gap-4">
+                <button id="save-cert-btn" onclick="saveCertificate()" class="btn-action flex-1 text-xl text-white">SAVE CERT (.PNG)</button>
+                <button onclick="location.reload()" class="btn-action flex-1 text-xl bg-gray-700 hover:bg-gray-600 text-white">PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            name: "",
+            level: 1,
+            totalScore: 0,
+            isGameOver: false,
+            demonPositions: [],
+            doorIndex: 5,
+            multiplier: 1
+        };
+
+        function startGame() {
+            const name = document.getElementById('player-name').value.trim();
+            if(!name) return;
+            gameState.name = name;
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            initLevel();
+        }
+
+        function initLevel() {
+            // Update Multiplier (Doubles every level)
+            gameState.multiplier = Math.pow(2, gameState.level - 1);
+            
+            document.getElementById('level-display').innerText = gameState.level;
+            document.getElementById('score-display').innerText = gameState.totalScore;
+            document.getElementById('next-level-btn').disabled = true;
+            document.getElementById('next-round-num').innerText = gameState.level + 1;
+            document.getElementById('hint-text').classList.add('opacity-0');
+
+            // Set Point labels
+            document.getElementById('val-window').innerText = 5 * gameState.multiplier;
+            document.getElementById('val-door').innerText = 25 * gameState.multiplier;
+
+            // Randomize Demons
+            gameState.demonPositions = [];
+            while(gameState.demonPositions.length < 3) {
+                let r = Math.floor(Math.random() * 11);
+                if(!gameState.demonPositions.includes(r)) gameState.demonPositions.push(r);
+            }
+            renderGrid();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('mansion-grid');
+            grid.innerHTML = '';
+            for(let i = 0; i < 11; i++) {
+                const isDoor = (i === gameState.doorIndex);
+                const el = document.createElement('div');
+                el.className = `opening ${isDoor ? 'col-start-3 row-start-3' : ''}`;
+                
+                const panel = document.createElement('div');
+                panel.className = 'door-panel';
+                panel.style.backgroundColor = isDoor ? '#5d4037' : '#2d3748';
+                panel.innerHTML = isDoor ? '<div class="w-2 h-2 bg-yellow-600 rounded-full ml-auto mr-2"></div>' : '';
+                
+                const content = document.createElement('div');
+                content.className = 'content';
+                content.innerHTML = gameState.demonPositions.includes(i) ? 
+                    '<span class="demon">💀</span>' : 
+                    '<span class="treasure">💎</span>';
+
+                el.appendChild(content);
+                el.appendChild(panel);
+                el.onclick = () => handleReveal(i, el);
+                grid.appendChild(el);
+            }
+        }
+
+        function handleReveal(index, element) {
+            if(element.classList.contains('revealed') || gameState.isGameOver) return;
+            element.classList.add('revealed');
+            
+            if(gameState.demonPositions.includes(index)) {
+                gameState.isGameOver = true;
+                setTimeout(() => endGame(false), 1000);
+            } else {
+                const points = (index === gameState.doorIndex ? 25 : 5) * gameState.multiplier;
+                gameState.totalScore += points;
+                document.getElementById('score-display').innerText = gameState.totalScore;
+                document.getElementById('next-level-btn').disabled = false;
+                document.getElementById('hint-text').classList.remove('opacity-0');
+            }
+        }
+
+        function goToNextLevel() {
+            if(gameState.level >= 10) {
+                endGame(true);
+            } else {
+                gameState.level++;
+                initLevel();
+            }
+        }
+
+        function endGame(won = false) {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            
+            const certTitle = document.getElementById('cert-title');
+            if(won) {
+                certTitle.innerText = "MASTER OF THE MANSION";
+                certTitle.classList.add('text-red-700');
+            } else if (gameState.level >= 5) {
+                certTitle.innerText = "NOBLE SURVIVOR";
+            } else {
+                certTitle.innerText = "CERTIFICATE OF BRAVERY";
+            }
+
+            document.getElementById('cert-name').innerText = gameState.name;
+            document.getElementById('cert-level').innerText = gameState.level;
+            document.getElementById('cert-score').innerText = gameState.totalScore;
+        }
+
+        async function saveCertificate() {
+            const btn = document.getElementById('save-cert-btn');
+            const cert = document.getElementById('certificate');
+            btn.disabled = true;
+            btn.innerText = "PROCESSING...";
+            
+            try {
+                const canvas = await html2canvas(cert, { 
+                    scale: 2, 
+                    backgroundColor: '#fdf6e3',
+                    logging: false
+                });
+                const link = document.createElement('a');
+                link.download = `Mansion_Score_${gameState.totalScore}_${gameState.name}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            } catch (e) {
+                console.error("Save failed", e);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "SAVE CERTIFICATE (.PNG)";
+            }
+        }
+    </script>
+</body>
+</html>
