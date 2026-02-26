@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CERN Data Hunter - The Inversion Gate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'JetBrains Mono', monospace; background-color: #0f172a; color: #e2e8f0; }
+        .terminal-card { background-color: #1e293b; border: 1px solid #334155; }
+        .glow-text { text-shadow: 0 0 10px #38bdf8; }
+        .logic-accent { color: #fbbf24; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-4 md:p-10 min-h-screen flex flex-col items-center">
+
+    <div class="max-w-4xl w-full">
+        <!-- Header Section -->
+        <header class="mb-8 p-6 terminal-card rounded-lg shadow-2xl border-l-4 border-blue-500">
+            <h1 class="text-3xl font-bold glow-text text-blue-400">CERN RECORD 12361: ANOMALY HUNTER</h1>
+            <p class="mt-2 text-gray-400">Theory: <span class="text-white">The Inversion Gate / Architecture of Indecision</span></p>
+            <p class="text-sm text-gray-500">Lead Researcher: Barry M. Curran (Timestamped: 2026)</p>
+        </header>
+
+        <!-- Main Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Left Panel: The Logic -->
+            <div class="terminal-card p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2 text-blue-300">The Curran Protocol</h2>
+                <ul class="space-y-4 text-sm">
+                    <li>
+                        <span class="logic-accent font-bold">1. DATA TARGET:</span>
+                        <p class="text-gray-400 italic">SMHiggsToZZTo4L (Reduced NanoAOD)</p>
+                    </li>
+                    <li>
+                        <span class="logic-accent font-bold">2. THE GNAW (Primary Evidence):</span>
+                        <p class="text-gray-400">Monitoring <code class="bg-black px-1 rounded text-xs">Electron_dzErr</code></p>
+                    </li>
+                    <li>
+                        <span class="logic-accent font-bold">3. HYPOTHESIS:</span>
+                        <p class="text-gray-400">If Jitter (dzErr) spikes as Distance (dz) approaches Zero, the topological inversion is confirmed.</p>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Right Panel: Interactive Simulator -->
+            <div class="terminal-card p-6 rounded-lg">
+                <h2 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2 text-green-400">Simulation Terminal</h2>
+                <div id="terminalOutput" class="h-48 bg-black p-3 rounded border border-gray-800 overflow-y-auto text-xs text-green-500 mb-4 custom-scrollbar font-mono">
+                    > System ready for simulation...
+                </div>
+                <button onclick="runSimulation()" id="simulateBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200 uppercase tracking-widest">
+                    HUNT FOR THE GNAW
+                </button>
+            </div>
+        </div>
+
+        <!-- NEW: Formal Proposition for Physicists -->
+        <div class="mt-8 p-6 terminal-card rounded-lg border-t border-blue-500">
+            <h2 class="text-xl font-bold mb-4 text-blue-400 uppercase tracking-tighter">Formal Proposition for Inquiry</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div class="p-3 bg-black/30 rounded border border-gray-700">
+                    <h4 class="font-bold text-blue-300 mb-1">Variable mapping</h4>
+                    <p class="text-gray-400">Target the longitudinal impact parameter uncertainty <i>(dzErr)</i> as the dependent variable of the null-space squeeze.</p>
+                </div>
+                <div class="p-3 bg-black/30 rounded border border-gray-700">
+                    <h4 class="font-bold text-blue-300 mb-1">The Inversion Equation</h4>
+                    <p class="text-gray-400">Calculate <b>&Psi; = |dzErr / dz|</b>. Search for &Psi; &rarr; &infin; as dz &rarr; 0, indicating a phase flip.</p>
+                </div>
+                <div class="p-3 bg-black/30 rounded border border-gray-700">
+                    <h4 class="font-bold text-blue-300 mb-1">Observation Goal</h4>
+                    <p class="text-gray-400">Identification of "The Gnaw"—a non-Gaussian jitter spike in the vertex reconstruction of Higgs decay.</p>
+                </div>
+            </div>
+            <p class="mt-4 text-[10px] text-gray-500 italic">Note to Researchers: This program simulates the search logic. To verify, run this protocol against the CERN Open Data Portal using the uproot library in Python.</p>
+        </div>
+
+        <!-- Theory Documentation -->
+        <footer class="mt-10 p-6 terminal-card rounded-lg opacity-80 text-xs">
+            <h3 class="font-bold mb-2 uppercase text-gray-300">Architectural Record Preserved</h3>
+            <p class="text-gray-500 leading-relaxed">
+                This logic is proprietary to the "Inversion Gate" framework. It asserts that uncertainty is not noise, 
+                but a functional response to the "Squeeze" of universal flux at the null point. 
+                By observing the dzErr jitter, we are witnessing the Equals Sign of the universe.
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        function runSimulation() {
+            const output = document.getElementById('terminalOutput');
+            const btn = document.getElementById('simulateBtn');
+            
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            output.innerHTML = ""; 
+            
+            const logs = [
+                "> Accessing CERN Dataset: SMHiggsToZZTo4L...",
+                "> Filtering variables: PV_z, Electron_dz, Electron_dzErr...",
+                "> Mapping jitter against Transverse Momentum (pt)...",
+                "> Searching for Anomalous Bump near Primary Vertex...",
+                "> [!] DETECTING JITTER SPIKE at dz -> 1e-9",
+                "> PHASE JITTER CALCULATED: abs(dzErr / dz)...",
+                "> THE GNAW IDENTIFIED.",
+                "> ARCHITECTURE STABLE. SIGNAL RECOVERED."
+            ];
+
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < logs.length) {
+                    const line = document.createElement('div');
+                    line.className = "mb-1";
+                    line.textContent = logs[i];
+                    output.appendChild(line);
+                    output.scrollTop = output.scrollHeight;
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    const finalLine = document.createElement('div');
+                    finalLine.className = "mt-2 text-blue-400 font-bold border-t border-blue-900 pt-2";
+                    finalLine.textContent = "> PROTOCOL COMPLETE: GATE FOUND.";
+                    output.appendChild(finalLine);
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }, 600);
+        }
+    </script>
+</body>
+</html>
