@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pirate Adventure: Sovereign 3DO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pirate-gold: #d4a373;
+            --terminal-green: #00ff41;
+            --deep-sea: #050a0f;
+            --3do-blue: #1a2a6c;
+        }
+
+        body {
+            background-color: var(--deep-sea);
+            color: white;
+            font-family: 'Share Tech Mono', monospace;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #viewport {
+            height: 45vh;
+            position: relative;
+            border-bottom: 2px solid var(--pirate-gold);
+            background: linear-gradient(to bottom, #000, #111);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #scene-visual {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 8rem;
+            transition: all 0.5s ease-in-out;
+            position: relative;
+            z-index: 10;
+        }
+
+        .ambient-bg {
+            position: absolute;
+            inset: 0;
+            opacity: 0.3;
+            z-index: 0;
+        }
+
+        #terminal {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.9);
+            border-top: 1px solid rgba(212, 163, 115, 0.3);
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        #input-bar {
+            background: #111;
+            padding: 20px;
+            border-top: 2px solid var(--pirate-gold);
+            display: flex;
+            align-items: center;
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: var(--pirate-gold);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            width: 100%;
+            outline: none;
+            margin-left: 15px;
+        }
+
+        .gold-glow { color: var(--pirate-gold); text-shadow: 0 0 10px var(--pirate-gold); }
+        
+        /* Scanline Effect */
+        .crt::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            z-index: 100;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="crt">
+
+    <div id="viewport">
+        <div id="ambient" class="ambient-bg"></div>
+        <div id="scene-visual">🏠</div>
+        <div class="absolute bottom-4 left-4 bg-black/60 p-2 text-[10px] uppercase tracking-widest border border-white/20">
+            Node: <span id="location-name">London Flat</span>
+        </div>
+    </div>
+
+    <div id="terminal">
+        <div class="opacity-50 mb-4 text-xs">SOVEREIGN KERNEL V7.0 // LOCAL VOICE SYNTH // CURRAN-ADAMS PROTOCOL</div>
+        <div id="history"></div>
+    </div>
+
+    <div id="input-bar">
+        <span class="gold-glow text-2xl font-bold">λ</span>
+        <input type="text" id="user-input" placeholder="WHAT IS YOUR INTENT?" autofocus autocomplete="off">
+    </div>
+
+    <script>
+        const state = {
+            room: 1,
+            inventory: [],
+            flags: { pirateHappy: false, wornSneakers: false },
+            rooms: {
+                1: { 
+                    name: "Flat in London", 
+                    desc: "A cramped London flat. Dust motes dance in the light of a single window. A rug covers the floorboards. Stairs lead up.", 
+                    items: ["BOTTLE OF RUM", "SNEAKERS"], 
+                    exits: { UP: 2, OUT: 3 },
+                    visual: "🏠",
+                    color: "#1a1a1a"
+                },
+                2: { 
+                    name: "The Attic", 
+                    desc: "Smells of old paper and cedar. Boxes of forgotten memories line the walls.", 
+                    items: ["HAMMER", "NAILS"], 
+                    exits: { DOWN: 1 },
+                    visual: "📦",
+                    color: "#2c1e1e"
+                },
+                3: { 
+                    name: "The Ledge", 
+                    desc: "A dizzying height above the London streets. The wind howls. One slip and it's a long way down.", 
+                    items: [], 
+                    exits: { IN: 1 },
+                    visual: "🏙️",
+                    color: "#0f172a"
+                },
+                4: { 
+                    name: "Treasure Island", 
+                    desc: "Golden sands stretch out toward a turquoise sea. The air is thick with the scent of salt and adventure.", 
+                    items: ["SHOVEL"], 
+                    exits: { EAST: 5 },
+                    visual: "🏝️",
+                    color: "#075985"
+                },
+                5: { 
+                    name: "Lush Meadow", 
+                    desc: "Tall grass sways in the tropical breeze. A simple grass shack stands to the east.", 
+                    items: ["LUMBER"], 
+                    exits: { WEST: 4, EAST: 6 },
+                    visual: "🌱",
+                    color: "#064e3b"
+                },
+                6: { 
+                    name: "The Grass Shack", 
+                    desc: "Cool and shaded. A grizzled pirate sits on a crate, his eyes clouded with a deep, dusty thirst.", 
+                    items: [], 
+                    exits: { WEST: 5 },
+                    visual: "🏚️",
+                    color: "#451a03"
+                }
+            }
+        };
+
+        const historyEl = document.getElementById('history');
+        const inputEl = document.getElementById('user-input');
+        const sceneVisual = document.getElementById('scene-visual');
+        const ambientBg = document.getElementById('ambient');
+        const locName = document.getElementById('location-name');
+
+        function print(msg, color = 'white', silent = false) {
+            const div = document.createElement('div');
+            div.style.color = color;
+            div.className = "mb-3";
+            div.innerHTML = msg;
+            historyEl.appendChild(div);
+            historyEl.scrollTop = historyEl.scrollHeight;
+            
+            // Native Browser TTS - No API Required
+            if (!silent) {
+                const speech = new SpeechSynthesisUtterance(div.innerText);
+                speech.rate = 0.9;
+                speech.pitch = 0.8; // Lower pitch for that "computer voice" feel
+                window.speechSynthesis.speak(speech);
+            }
+        }
+
+        function playTone(freq, type, duration) {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function renderScene() {
+            const room = state.rooms[state.room];
+            locName.innerText = room.name;
+            sceneVisual.innerText = room.visual;
+            ambientBg.style.backgroundColor = room.color;
+        }
+
+        function look() {
+            const room = state.rooms[state.room];
+            print(`<span class="text-xl font-bold gold-glow">${room.name}</span>`, 'white');
+            print(room.desc);
+            if(room.items.length > 0) print(`You see: ${room.items.join(', ')}`, '#60a5fa');
+            print(`Exits: ${Object.keys(room.exits).join(', ')}`, '#9ca3af', true);
+            renderScene();
+        }
+
+        function handleCommand(raw) {
+            window.speechSynthesis.cancel(); // Interrupt previous speech
+            const cmd = raw.toUpperCase().trim();
+            const words = cmd.split(' ');
+            const verb = words[0];
+            const noun = words[1] || "";
+
+            print(`> ${raw}`, 'rgba(255,255,255,0.3)', true);
+
+            const dirs = ["NORTH", "SOUTH", "EAST", "WEST", "UP", "DOWN", "IN", "OUT"];
+            if (dirs.includes(verb)) {
+                move(verb);
+            } else if (verb === "GO" && dirs.includes(noun)) {
+                move(noun);
+            } else {
+                switch(verb) {
+                    case "LOOK": look(); break;
+                    case "INV":
+                    case "I":
+                        print(state.inventory.length ? `Carrying: ${state.inventory.join(', ')}` : "Pockets are empty.");
+                        break;
+                    case "GET":
+                    case "TAKE":
+                        const itemToTake = noun === "RUM" ? "BOTTLE OF RUM" : noun;
+                        const itemIdx = state.rooms[state.room].items.indexOf(itemToTake);
+                        if(itemIdx > -1) {
+                            const item = state.rooms[state.room].items.splice(itemIdx, 1)[0];
+                            state.inventory.push(item);
+                            print(`Taken ${item}.`);
+                            playTone(440, 'sine', 0.1);
+                        } else print("Not here.");
+                        break;
+                    case "WEAR":
+                        if(noun === "SNEAKERS" && state.inventory.includes("SNEAKERS")) {
+                            state.flags.wornSneakers = true;
+                            print("You lace up the sneakers. The grip is firm.");
+                            playTone(220, 'square', 0.2);
+                        } else print("Can't wear that.");
+                        break;
+                    case "SAY":
+                        if(noun === "YOHO" && state.room === 3) {
+                            print(`The world distorts. The London fog becomes sea mist.`);
+                            playTone(880, 'sawtooth', 0.5);
+                            state.room = 4;
+                            look();
+                        } else print("Nothing happens.");
+                        break;
+                    case "GIVE":
+                        if(noun === "RUM" && state.room === 6 && state.inventory.includes("BOTTLE OF RUM")) {
+                            state.flags.pirateHappy = true;
+                            state.inventory = state.inventory.filter(i => i !== "BOTTLE OF RUM");
+                            state.inventory.push("SHIP PLANS");
+                            print("The pirate gulps the rum. 'Bless ye! Take these plans!'");
+                            playTone(660, 'sine', 0.3);
+                        } else print("Nothing to give.");
+                        break;
+                    case "HELP":
+                        print("Intents: LOOK, INV, GET, GO, WEAR, GIVE.");
+                        break;
+                    default:
+                        print("Logic unknown.");
+                }
+            }
+        }
+
+        function move(dir) {
+            const exits = state.rooms[state.room].exits;
+            if(exits[dir]) {
+                if(state.room === 3 && dir === "OUT" && !state.flags.wornSneakers) {
+                    print(`You slipped on the slick ledge! You fall...`);
+                    playTone(110, 'sawtooth', 1.0);
+                    setTimeout(() => location.reload(), 3000);
+                    return;
+                }
+                state.room = exits[dir];
+                playTone(330, 'sine', 0.05);
+                look();
+            } else print("Path blocked.");
+        }
+
+        inputEl.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') {
+                handleCommand(inputEl.value);
+                inputEl.value = "";
+            }
+        });
+
+        window.onload = () => {
+            print("INITIALIZING SOVEREIGN CARTRIDGE...", 'white', true);
+            print("NATIVE VOICE KERNEL ONLINE.", 'white', false);
+            look();
+        };
+    </script>
+</body>
+</html>
