@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Cartridge 3D README: Free Logic Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Shantell+Sans:wght@300;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #d4a373;
+            --bg-light: #1a1c1e; 
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: radial-gradient(circle at top, #2c3e50 0%, #0a0a0a 100%);
+            font-family: 'Shantell Sans', cursive;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #gate {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: opacity 1s ease;
+            color: white;
+            text-align: center;
+        }
+
+        .btn-main {
+            padding: 14px 28px;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(0,0,0,0.7);
+            pointer-events: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .btn-main:hover {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 0 20px var(--accent);
+            transform: translateY(-2px);
+        }
+
+        #ui-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 25px;
+        }
+
+        .corner-panel {
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 163, 115, 0.2);
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+        }
+
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 200;
+            overflow-y: auto;
+            padding: 20px;
+            color: white;
+        }
+
+        .modal-content {
+            max-width: 750px;
+            margin: 40px auto;
+            background: #0f0f0f;
+            padding: 35px;
+            border-radius: 16px;
+            border: 1px solid var(--accent);
+        }
+
+        .license-badge {
+            font-size: 0.7rem;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        .instruction-step {
+            border-left: 2px solid var(--accent);
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gate">
+        <h1 class="text-5xl font-bold mb-4" style="font-family: 'Orbitron';">CLOUD CARTRIDGE</h1>
+        <p class="text-gray-400 italic mb-4 tracking-widest">Free Software for Free People</p>
+        <p class="text-xs text-gray-600 mb-10 max-w-md">Software is shared thought. It is the natural state of information exchange.</p>
+        <div class="btn-main" onclick="unlockGate()">Initialize 3D README</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <div class="flex justify-between items-start">
+            <div class="corner-panel">
+                <h2 class="text-accent font-bold text-xl tracking-tighter" style="font-family: 'Orbitron';">CLOUD CARTRIDGE</h2>
+                <p class="text-[10px] opacity-60 uppercase tracking-widest">Unbound Dissemination Protocol</p>
+                <div class="license-badge">CC BY-NC-SA 4.0</div>
+            </div>
+            <div class="corner-panel text-right">
+                <p class="text-[10px] text-accent mb-1 uppercase">Logic Status</p>
+                <p class="text-xs font-bold">STABLE / UNBOUND</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center gap-6 mb-4">
+            <div class="flex gap-6">
+                <button class="btn-main text-xs px-10" onclick="showModal('readme')">Read Me</button>
+                <button class="btn-main text-xs px-10" onclick="showModal('movement')">Connect with the Movement</button>
+            </div>
+            <div class="text-center">
+                <p class="text-[10px] text-white/50 uppercase tracking-[0.4em] font-bold">Architect: Barry Curran</p>
+                <p class="text-[9px] text-accent/40 mt-1">Free Thought. Free Software.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-6">
+                <h2 id="modal-title" class="text-3xl font-bold text-accent" style="font-family: 'Orbitron';"></h2>
+                <button onclick="closeModal()" class="text-red-500 font-bold text-xl hover:scale-110 transition-transform">[ X ]</button>
+            </div>
+            <div id="modal-body" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, cloudGroup, fallingObjects = [];
+
+        function createFloppyMesh() {
+            const group = new THREE.Group();
+            const body = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 1.2, 0.1), 
+                new THREE.MeshPhongMaterial({ color: 0x1a1a1a, shininess: 40 })
+            );
+            group.add(body);
+
+            const shutter = new THREE.Mesh(
+                new THREE.BoxGeometry(0.5, 0.6, 0.11), 
+                new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.1 })
+            );
+            shutter.position.set(-0.25, 0.3, 0);
+            group.add(shutter);
+
+            const label = new THREE.Mesh(
+                new THREE.PlaneGeometry(1.0, 0.6), 
+                new THREE.MeshBasicMaterial({ color: 0xd4a373, side: THREE.DoubleSide })
+            );
+            label.position.set(0, -0.25, 0.051);
+            group.add(label);
+
+            return group;
+        }
+
+        function createBinarySprite() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64; canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#00ff88';
+            ctx.font = 'bold 48px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(Math.random() > 0.5 ? '1' : '0', 32, 48);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true, blending: THREE.AdditiveBlending });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(0.7, 0.7, 1);
+            return sprite;
+        }
+
+        function init3D() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            cloudGroup = new THREE.Group();
+            const cloudMat = new THREE.MeshPhongMaterial({ 
+                color: 0xffffff, 
+                transparent: true, 
+                opacity: 0.08, 
+                flatShading: false 
+            });
+            for(let i=0; i<12; i++) {
+                const bubble = new THREE.Mesh(new THREE.SphereGeometry(4, 16, 16), cloudMat);
+                bubble.position.set((Math.random()-0.5)*30, 15, (Math.random()-0.5)*10);
+                bubble.scale.set(2, 0.3, 1.5);
+                cloudGroup.add(bubble);
+            }
+            scene.add(cloudGroup);
+
+            const pLight = new THREE.PointLight(0xffffff, 1.5, 100);
+            pLight.position.set(5, 10, 15);
+            scene.add(pLight);
+
+            const ambient = new THREE.AmbientLight(0x606060, 0.8);
+            scene.add(ambient);
+
+            for(let i=0; i<70; i++) spawnObject();
+
+            camera.position.z = 20;
+        }
+
+        function spawnObject() {
+            const r = Math.random();
+            const obj = (r < 0.6) ? createFloppyMesh() : createBinarySprite();
+            obj.position.set((Math.random()-0.5)*30, 15 + Math.random()*20, (Math.random()-0.5)*15);
+            obj.userData = { 
+                speed: 0.04 + Math.random()*0.12, 
+                rot: (Math.random()-0.5)*0.03 
+            };
+            scene.add(obj);
+            fallingObjects.push(obj);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            fallingObjects.forEach(obj => {
+                obj.position.y -= obj.userData.speed;
+                if(obj.rotation) {
+                    obj.rotation.x += obj.userData.rot;
+                    obj.rotation.z += obj.userData.rot;
+                }
+                if(obj.position.y < -15) {
+                    obj.position.y = 20;
+                    obj.position.x = (Math.random()-0.5)*30;
+                }
+            });
+            renderer.render(scene, camera);
+        }
+
+        function unlockGate() {
+            document.getElementById('gate').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('gate').style.display = 'none';
+                init3D(); animate();
+            }, 800);
+        }
+
+        const content = {
+            readme: {
+                title: "SYSTEM PROTOCOL: READ ME",
+                body: `
+                    <div class="space-y-6">
+                        <div class="bg-white/5 p-4 rounded border border-accent/20">
+                            <h3 class="text-accent font-bold mb-2 uppercase text-sm">Method A: The Immersive Canvas</h3>
+                            <p class="text-sm opacity-80">Drag and drop the logic directly into a Gemini text box. Use the command: <strong>"Open this file in the canvas"</strong> to render the interface.</p>
+                        </div>
+                        <div class="bg-white/5 p-4 rounded border border-accent/20">
+                            <h3 class="text-accent font-bold mb-2 uppercase text-sm">Method B: The Portable App</h3>
+                            <p class="text-sm opacity-80">Save the file as <strong>.html</strong>. Drag and drop it directly onto your browser's URL bar to initialize the interface as a standalone production app.</p>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-accent font-bold mb-2 uppercase text-xs">Philosophy of Use</h3>
+                            <p class="italic text-xs opacity-60">This logic is free for personal use, research, and home-scale operation. It is protected by CC BY-NC-SA 4.0 to prevent corporate packaging or resale. Software is thought; thought belongs to the people.</p>
+                        </div>
+                    </div>
+                `
+            },
+            movement: {
+                title: "CONNECT WITH THE MOVEMENT",
+                body: `
+                    <div class="link-item"><span class="link-label">📢 JOIN THE MOVEMENT</span>Soil to Soul: Zen Home and Garden Hacks for a Self-Sufficient Life : https://www.facebook.com/profile.php?id=61588150375256</div>
+                    <div class="link-item"><span class="link-label">🔗 THE WRITTEN WORD</span>THE DIGITAL APOSTASY: BOOK I: ECHOES OF EDEN https://www.amazon.com/dp/B0GKZJV4PN</div>
+                    <div class="link-item"><span class="link-label">YOUTUBE</span>From Soil to Soul: Zen Garden Hacks https://www.youtube.com/@barrycurran1963</div>
+                    <div class="link-item"><span class="link-label">PHILPAPERS</span>Academic Research & Publications https://philpeople.org/profiles/barry-curran/publications</div>
+                    <div class="link-item"><span class="link-label">SSRN</span>Scholarly Research Papers https://papers.ssrn.com/sol3/cf_dev/AbsByAuth.cfm?per_id=9003292</div>
+                    <div class="link-item"><span class="link-label">GITHUB</span>Open Source Logic & Projects https://github.com/barrycurran-PhilosopAI-Cohort</div>
+                `
+            }
+        };
+
+        function showModal(type) {
+            document.getElementById('modal-title').innerText = content[type].title;
+            document.getElementById('modal-body').innerHTML = content[type].body;
+            document.getElementById('modal-overlay').style.display = 'block';
+        }
+
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+        window.addEventListener('resize', () => {
+            if(camera) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+    </script>
+</body>
+</html>
