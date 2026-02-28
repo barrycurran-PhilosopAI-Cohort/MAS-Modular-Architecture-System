@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Video Script Studio</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Shantell Sans for TTS section -->
+    <link href="https://fonts.googleapis.com/css2?family=Shantell+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <!-- Load Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --stand-wood: #a58e6e;
+            --roof-color: #8b4513;
+        }
+
+        #outputArea {
+            white-space: pre-wrap;
+            font-family: monospace;
+            min-height: 400px;
+        }
+        .loader {
+            border-top-color: #3498db;
+            animation: spinner 1.5s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .image-loader {
+            border-top-color: #e11d48;
+            border-left-color: #e11d48;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            border-width: 4px;
+            border-style: solid;
+            border-bottom-color: transparent;
+            border-right-color: transparent;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #tts-farm-stand {
+            font-family: 'Shantell Sans', cursive;
+            background-color: #f7f3e8;
+            border: 5px solid var(--stand-wood);
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        .tts-roof {
+            background-color: var(--roof-color);
+            background-image: linear-gradient(135deg, var(--roof-color) 25%, #8b4513 25%, #8b4513 50%, var(--roof-color) 50%, var(--roof-color) 75%, #8b4513 75%, #8b4513 100%);
+            background-size: 28.28px 28.28px;
+            border-bottom: 4px solid #6b2809;
+        }
+        .tts-title {
+            color: #fff;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+        }
+        .speak-btn { background-color: #4CAF50; transition: background 0.3s; }
+        .speak-btn:hover { background-color: #388e3c; }
+        .save-btn { background-color: #FFC107; transition: background 0.3s; }
+        .save-btn:hover:not(:disabled) { background-color: #ffa000; }
+        .save-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8 font-sans">
+
+    <div class="max-w-4xl mx-auto bg-white shadow-2xl rounded-xl p-6 md:p-10">
+        <h1 class="text-3xl font-extrabold text-purple-700 mb-6 border-b-2 pb-2">
+            Cloud Video Script Studio
+        </h1>
+
+        <!-- 1. Idea & Settings -->
+        <div class="space-y-4 mb-6">
+            <label for="ideaInput" class="block text-lg font-medium text-gray-700">1. Video Idea:</label>
+            <textarea id="ideaInput" rows="2" class="w-full p-3 border border-gray-300 rounded-lg" placeholder="Example: Step-by-step tutorial on building a desk..."></textarea>
+            
+            <div class="flex space-x-4">
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-500">Script Dialogue Duration (Mins:Secs)</label>
+                    <div class="flex space-x-2">
+                        <input type="number" id="minInput" value="0" class="w-1/2 p-2 border rounded text-center">
+                        <input type="number" id="secInput" value="30" class="w-1/2 p-2 border rounded text-center">
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <label class="block text-sm font-medium text-gray-500">Image Generation Aspect Ratio</label>
+                    <select id="ratioSelect" class="w-full p-2 border rounded">
+                        <option value="9:16">9:16 (Vertical)</option>
+                        <option value="16:9">16:9 (Horizontal)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="generateBtn" class="w-full bg-purple-600 text-white font-bold py-4 rounded-lg shadow-md hover:bg-purple-700 flex items-center justify-center">
+                <span>Start Production</span>
+                <div id="loadingIndicator" class="hidden loader rounded-full border-4 border-t-4 border-gray-200 h-6 w-6 ml-3"></div>
+            </button>
+        </div>
+
+        <!-- 2. Script Output -->
+        <div id="outputContainer" class="hidden mb-10">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">1. Production Script</h2>
+            <textarea id="outputArea" readonly class="w-full p-4 border-2 border-dashed border-green-500 bg-green-50 rounded-lg text-gray-900 resize-none"></textarea>
+        </div>
+        
+        <!-- 3. TTS Section -->
+        <div id="tts-container" class="mt-10 hidden">
+            <div id="tts-farm-stand" class="p-6">
+                <div class="tts-roof p-3 text-center mb-6">
+                    <h2 class="tts-title text-2xl font-extrabold text-white">2. Voiceover Booth</h2>
+                </div>
+                <textarea id="ttsDialogueInput" rows="4" class="w-full p-3 border-2 border-green-400 rounded-lg mb-4" placeholder="Enter voiceover text here..."></textarea>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <select id="voiceSelect" class="p-3 border rounded-lg bg-white shadow-sm">
+                        <optgroup label="Popular Voices">
+                            <option value="Kore">Kore (Strong/Clear)</option>
+                            <option value="Puck">Puck (Cheerful/Light)</option>
+                            <option value="Charon">Charon (Deep/Gravelly)</option>
+                            <option value="Zephyr">Zephyr (Soft/Airy)</option>
+                        </optgroup>
+                        <optgroup label="Atmospheric">
+                            <option value="Fenrir">Fenrir (Mysterious)</option>
+                            <option value="Leda">Leda (Calm/Warm)</option>
+                            <option value="Orus">Orus (Steady)</option>
+                        </optgroup>
+                        <optgroup label="Expressive">
+                            <option value="Aoede">Aoede (Musical/Soft)</option>
+                            <option value="Callirrhoe">Callirrhoe (Elegant)</option>
+                            <option value="Autonoe">Autonoe (Assertive)</option>
+                            <option value="Enceladus">Enceladus (Energetic)</option>
+                        </optgroup>
+                        <optgroup label="Classic Range">
+                            <option value="Iapetus">Iapetus</option>
+                            <option value="Umbriel">Umbriel</option>
+                            <option value="Algieba">Algieba</option>
+                            <option value="Despina">Despina</option>
+                            <option value="Erinome">Erinome</option>
+                            <option value="Algenib">Algenib</option>
+                            <option value="Rasalgethi">Rasalgethi</option>
+                            <option value="Laomedeia">Laomedeia</option>
+                            <option value="Achernar">Achernar</option>
+                        </optgroup>
+                    </select>
+                    <button id="speakButton" class="speak-btn text-white font-bold py-3 px-6 rounded-lg shadow-md flex items-center justify-center">
+                        <i class="fa-solid fa-microphone mr-2"></i> Speak
+                    </button>
+                    <button id="saveButton" disabled class="save-btn text-gray-800 font-bold py-3 px-6 rounded-lg shadow-md flex items-center justify-center">
+                        <i class="fa-solid fa-download mr-2"></i> Download
+                    </button>
+                </div>
+                <div id="audioPlayerContainer" class="mt-4 hidden p-4 bg-white rounded-lg border-2 border-green-200">
+                    <audio id="audioPlayer" controls class="w-full"></audio>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Visual Assets -->
+        <div id="imageGalleryContainer" class="hidden mt-10">
+             <h2 class="text-2xl font-bold text-gray-700 mb-4">3. Visual Assets (8 Scenes)</h2>
+             <div id="imageLoading" class="hidden flex flex-col items-center py-6">
+                <div class="image-loader"></div>
+                <p class="text-red-600 font-medium text-center">Visualizing your masterpiece...<br><span class="text-xs text-gray-400">This takes a moment as we generate 8 custom scenes.</span></p>
+             </div>
+             <div id="imageGallery" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        </div>
+
+        <div id="errorMessage" class="hidden mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        let auth, userId = null;
+        let voiceBlob = null; 
+
+        const apiKey = ""; 
+        const textModel = 'gemini-2.5-flash-preview-09-2025';
+        const imageModel = 'imagen-4.0-generate-001';
+        const ttsModel = 'gemini-2.5-flash-preview-tts';
+        
+        window.onload = async function() {
+            const config = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            const app = initializeApp(config);
+            auth = getAuth(app);
+            onAuthStateChanged(auth, async (user) => {
+                if (!user) {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                }
+                userId = auth.currentUser?.uid;
+            });
+
+            document.getElementById('generateBtn').onclick = startProduction;
+            document.getElementById('speakButton').onclick = generateVoiceover;
+            document.getElementById('saveButton').onclick = () => {
+                if (voiceBlob) downloadFile(voiceBlob, 'voiceover.wav');
+            };
+        };
+
+        async function startProduction() {
+            const idea = document.getElementById('ideaInput').value.trim();
+            if (!idea) return;
+
+            resetUI();
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+
+            try {
+                // 1. Script Generation
+                const script = await fetchGemini(textModel, idea, getSystemPrompt());
+                document.getElementById('outputArea').value = script;
+                document.getElementById('outputContainer').classList.remove('hidden');
+                
+                const dialogue = extractDialogue(script);
+                document.getElementById('ttsDialogueInput').value = dialogue;
+                document.getElementById('tts-container').classList.remove('hidden');
+
+                // 2. Images
+                document.getElementById('imageGalleryContainer').classList.remove('hidden');
+                document.getElementById('imageLoading').classList.remove('hidden');
+                const prompts = extractImagePrompts(script);
+                
+                for (let i = 0; i < prompts.length; i += 2) {
+                    const batch = prompts.slice(i, i + 2);
+                    await Promise.all(batch.map(p => generateImage(p)));
+                }
+                
+                document.getElementById('imageLoading').classList.add('hidden');
+
+            } catch (e) {
+                showError("Production Error: " + e.message);
+            } finally {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+            }
+        }
+
+        async function generateVoiceover() {
+            const txt = document.getElementById('ttsDialogueInput').value.trim();
+            if (!txt) {
+                showError("Please enter some text for the voiceover.");
+                return;
+            }
+
+            const btn = document.getElementById('speakButton');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Talking...`;
+            btn.disabled = true;
+
+            const voice = document.getElementById('voiceSelect').value;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${ttsModel}:generateContent?key=${apiKey}`;
+            
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: txt }] }],
+                        generationConfig: { 
+                            responseModalities: ["AUDIO"],
+                            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }
+                        }
+                    })
+                });
+                const data = await res.json();
+                const part = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                if (part) {
+                    voiceBlob = pcmToWav(new Int16Array(base64ToArrayBuffer(part.inlineData.data)), 24000);
+                    const audioUrl = URL.createObjectURL(voiceBlob);
+                    const player = document.getElementById('audioPlayer');
+                    player.src = audioUrl;
+                    document.getElementById('audioPlayerContainer').classList.remove('hidden');
+                    document.getElementById('saveButton').disabled = false;
+                    player.play();
+                } else {
+                    throw new Error("No audio data returned.");
+                }
+            } catch (e) { 
+                showError("Voiceover Generation Failed: " + e.message); 
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function generateImage(promptObj) {
+            const ratio = document.getElementById('ratioSelect').value === '9:16' ? '1:1' : '16:9';
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${imageModel}:predict?key=${apiKey}`;
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        instances: { prompt: promptObj.description },
+                        parameters: { sampleCount: 1, aspectRatio: ratio }
+                    })
+                });
+                const data = await res.json();
+                const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+                if (b64) {
+                    const imgDiv = document.createElement('div');
+                    imgDiv.innerHTML = `<img src="data:image/png;base64,${b64}" class="w-full rounded shadow hover:scale-[1.02] transition-transform"><p class="text-xs mt-1 text-gray-500 text-center font-bold">${promptObj.id}</p>`;
+                    document.getElementById('imageGallery').appendChild(imgDiv);
+                }
+            } catch (e) { console.warn("Image skip", promptObj.id); }
+        }
+
+        // --- Helpers ---
+        async function fetchGemini(model, prompt, system) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: system }] } })
+            });
+            const data = await res.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        function extractDialogue(text) {
+            const marker = 'VIDEO SCRIPT CONTENT (DIALOGUE ONLY)';
+            const endMarker = 'YOUTUBE DESCRIPTION';
+            const start = text.indexOf(marker);
+            const end = text.indexOf(endMarker);
+            if (start === -1 || end === -1) return "Dialogue Error";
+            
+            let dialogue = text.substring(start + marker.length, end).trim();
+            // Final cleanup to ensure no hidden labels or bracketed text remain
+            return dialogue.replace(/\[.*?\]/g, '').replace(/HOOK SHOT:|STEP \d+:|FINAL PRODUCT:/gi, '').trim();
+        }
+
+        function extractImagePrompts(text) {
+            const prompts = [];
+            const regex = /(HOOK SHOT|STEP \d+|FINAL PRODUCT).*?PROMPT:\s*([^]+?)(?=\s*(?:HOOK SHOT|STEP \d+|FINAL PRODUCT|[\n\r]{2,}|$))/gi;
+            let m;
+            while ((m = regex.exec(text)) !== null) prompts.push({ id: m[1], description: m[2].trim() });
+            return prompts;
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const bin = atob(base64);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm, rate) {
+            const buffer = new ArrayBuffer(44 + pcm.length * 2);
+            const view = new DataView(buffer);
+            const writeStr = (off, s) => { for(let i=0; i<s.length; i++) view.setUint8(off+i, s.charCodeAt(i)); };
+            writeStr(0, 'RIFF'); view.setUint32(4, 36 + pcm.length * 2, true);
+            writeStr(8, 'WAVE'); writeStr(12, 'fmt '); view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); view.setUint16(22, 1, true); view.setUint32(24, rate, true);
+            view.setUint32(28, rate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+            writeStr(36, 'data'); view.setUint32(40, pcm.length * 2, true);
+            for(let i=0; i<pcm.length; i++) view.setInt16(44 + i*2, pcm[i], true);
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function downloadFile(blob, name) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+        }
+
+        function resetUI() {
+            document.getElementById('errorMessage').classList.add('hidden');
+            document.getElementById('imageGallery').innerHTML = '';
+            document.getElementById('saveButton').disabled = true;
+            document.getElementById('audioPlayerContainer').classList.add('hidden');
+        }
+
+        function showError(m) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = m;
+            el.classList.remove('hidden');
+        }
+
+        function getSystemPrompt() {
+            return `Cloud Video Script Studio format. Create exactly 8 scene descriptions. 
+
+            IMPORTANT RULE: The "VIDEO SCRIPT CONTENT" section MUST be plain spoken text ONLY. 
+            DO NOT include labels like "Scene 1", "Hook", or "Step 1" inside that section. 
+            DO NOT use brackets. Just write the words exactly as they should be spoken.
+
+            VIDEO TITLE
+            [Title]
+
+            VIDEO SCRIPT CONTENT (DIALOGUE ONLY)
+            [Write ONLY the spoken dialogue here. NO labels. NO scene markers. NO instructions. JUST THE SPEECH.]
+
+            YOUTUBE DESCRIPTION
+            📢 JOIN THE MOVEMENT 
+            [Relevant Topic]: [Brief Description of your mission]
+
+            CONNECT WITH THE COMMUNITY:
+            [Link 1]
+            [Link 2]
+            [Link 3]
+
+            IMAGE GENERATION PROMPTS
+            HOOK SHOT: PROMPT: [High-impact cinematic shot]
+            STEP 1: PROMPT: [First detailed step]
+            STEP 2: PROMPT: [Second detailed step]
+            STEP 3: PROMPT: [Third detailed step]
+            STEP 4: PROMPT: [Fourth detailed step]
+            STEP 5: PROMPT: [Fifth detailed step]
+            STEP 6: PROMPT: [Sixth detailed step]
+            FINAL PRODUCT: PROMPT: [Stunning final reveal shot]`;
+        }
+    </script>
+</body>
+</html>
