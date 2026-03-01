@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Comic Book Creator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --comic-border: #000;
+            --comic-bg: #fff;
+        }
+        body { font-family: 'Open Sans', sans-serif; }
+        .comic-font { font-family: 'Bangers', cursive; letter-spacing: 1px; }
+        
+        .comic-container {
+            border: 4px solid var(--comic-border);
+            box-shadow: 12px 12px 0px var(--comic-border);
+            background: var(--comic-bg);
+        }
+        .panel-image {
+            border-bottom: 4px solid var(--comic-border);
+            aspect-ratio: 16/9;
+            object-fit: cover;
+        }
+        .caption-box {
+            background: #fffcdb;
+            border: 2px solid #000;
+            padding: 1rem;
+            margin: 1rem;
+            position: relative;
+            transform: rotate(-1deg);
+            box-shadow: 4px 4px 0px #000;
+        }
+        .loader {
+            border-top-color: #000;
+            animation: spinner 1.5s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-yellow-400 min-h-screen p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <div class="comic-container p-6 mb-8 relative">
+            
+            <!-- Home/Bailout Button -->
+            <button id="homeBtn" class="hidden absolute top-4 right-4 bg-red-600 text-white p-2 rounded-full border-2 border-black hover:bg-red-700 z-50">
+                <i class="fa-solid fa-house"></i>
+            </button>
+
+            <h1 class="comic-font text-5xl uppercase italic text-center mb-6">
+                Interactive Comic Creator
+            </h1>
+
+            <!-- 1. Configuration Section -->
+            <div id="setup-section" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="comic-font text-xl block mb-1">Comic Title:</label>
+                        <input type="text" id="comicTitle" class="w-full p-3 border-4 border-black font-bold" placeholder="Leave blank for AI choice">
+                    </div>
+                    <div>
+                        <label class="comic-font text-xl block mb-1">Author Name:</label>
+                        <input type="text" id="authorName" class="w-full p-3 border-4 border-black font-bold" placeholder="e.g. The Architect">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="comic-font text-2xl block mb-2">Comic Book Idea:</label>
+                    <textarea id="ideaInput" rows="3" class="w-full p-4 border-4 border-black text-lg focus:outline-none" placeholder="Describe the story logic..."></textarea>
+                </div>
+                
+                <div class="flex flex-wrap gap-6">
+                    <div class="flex-1 min-w-[150px]">
+                        <label class="comic-font text-xl block mb-2">Pages (1-15):</label>
+                        <input type="number" id="pageCount" min="1" max="15" value="10" class="w-full p-3 border-4 border-black text-center font-bold text-xl">
+                    </div>
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="comic-font text-xl block mb-2">Graphic Style:</label>
+                        <select id="styleSelect" class="w-full p-3 border-4 border-black font-bold">
+                            <option value="Modern Graphic Novel">Modern Graphic Novel</option>
+                            <option value="Retro Silver Age Comic">Retro Silver Age</option>
+                            <option value="Gritty Noir Sketch">Gritty Noir</option>
+                            <option value="Vibrant Manga">Vibrant Manga</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[150px]">
+                        <label class="comic-font text-xl block mb-2">Voice Tone:</label>
+                        <select id="voiceSelect" class="w-full p-3 border-4 border-black font-bold">
+                            <option value="Kore">Standard (Kore)</option>
+                            <option value="Fenrir">Deep Male (Fenrir)</option>
+                            <option value="Zephyr">Zephyr</option>
+                            <option value="Puck">Puck</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="generateBtn" class="w-full bg-black text-white comic-font text-3xl py-6 hover:bg-gray-800 transition-colors flex items-center justify-center group">
+                    <span class="group-hover:scale-110 transition-transform">ASSEMBLE COMIC</span>
+                    <div id="loadingIndicator" class="hidden loader rounded-full border-4 border-t-4 border-white h-8 w-8 ml-4"></div>
+                </button>
+            </div>
+
+            <!-- 2. The Comic Reader -->
+            <div id="comic-reader" class="hidden mt-4 space-y-6">
+                <div id="panel-display" class="border-4 border-black overflow-hidden relative bg-black min-h-[400px] flex items-center justify-center">
+                    
+                    <div id="panel-content" class="w-full">
+                        <img id="currentImage" src="" class="panel-image w-full bg-gray-900">
+                        <div id="caption-container" class="caption-box">
+                            <p id="currentText" class="text-xl font-bold italic leading-tight"></p>
+                        </div>
+                    </div>
+
+                    <!-- Credits Page -->
+                    <div id="credits-content" class="hidden w-full h-full bg-white p-12 text-center flex flex-col items-center justify-center space-y-6">
+                        <h2 class="comic-font text-6xl uppercase" id="finalTitleDisplay">TITLE</h2>
+                        <div class="h-1 w-24 bg-black"></div>
+                        <p class="comic-font text-3xl">CREATED BY</p>
+                        <p class="text-4xl font-black italic underline" id="finalAuthorDisplay">AUTHOR</p>
+                        
+                        <div class="flex flex-col gap-4 w-full max-w-sm mt-8">
+                            <button id="saveHtmlBtn" class="bg-blue-600 text-white border-4 border-black py-4 comic-font text-2xl hover:bg-blue-700">
+                                <i class="fa-solid fa-file-export mr-2"></i> SAVE FULL CARTRIDGE
+                            </button>
+                            <button onclick="location.reload()" class="bg-black text-white comic-font text-2xl py-4 hover:bg-gray-800">
+                                START NEW COMIC
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="pageLoader" class="absolute inset-0 bg-white/80 flex items-center justify-center hidden">
+                        <div class="loader rounded-full border-4 h-12 w-12"></div>
+                    </div>
+                </div>
+
+                <!-- Navigation Controls -->
+                <div id="reader-controls" class="flex justify-between items-center gap-4">
+                    <button id="prevBtn" class="comic-font bg-black text-white px-8 py-3 text-xl hover:bg-gray-800 disabled:opacity-30">PREV</button>
+                    <div class="text-center">
+                        <p class="comic-font text-2xl" id="pageNumber">PAGE 1 / 10</p>
+                        <button id="speakBtn" class="text-blue-600 hover:text-blue-800">
+                            <i class="fa-solid fa-volume-high text-2xl"></i>
+                        </button>
+                    </div>
+                    <button id="nextBtn" class="comic-font bg-black text-white px-8 py-3 text-xl hover:bg-gray-800">NEXT</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-black text-white p-4 text-center comic-font text-lg">
+            Status: OPTIMAL // ARCHITECT INTERFACE // Build 2026.2
+        </div>
+    </div>
+
+    <!-- Data Injection Point for Saved Cartridges -->
+    <script id="embedded-data" type="application/json">{}</script>
+
+    <script type="module">
+        let comicMetadata = { title: "", author: "" };
+        let comicData = [];
+        let currentIndex = 0;
+        let isProducing = false;
+
+        const apiKey = ""; 
+        const textModel = 'gemini-2.5-flash-preview-09-2025';
+        const imageModel = 'imagen-4.0-generate-001';
+        const ttsModel = 'gemini-2.5-flash-preview-tts';
+
+        // Check for Embedded Data (Offline Support)
+        window.onload = () => {
+            const dataText = document.getElementById('embedded-data').innerText;
+            if (dataText && dataText !== '{}') {
+                const embedded = JSON.parse(dataText);
+                comicMetadata = embedded.metadata;
+                comicData = embedded.panels;
+                document.getElementById('setup-section').classList.add('hidden');
+                document.getElementById('comic-reader').classList.remove('hidden');
+                document.getElementById('homeBtn').classList.remove('hidden');
+                loadPage(0);
+            }
+        };
+
+        document.getElementById('generateBtn').onclick = startComicProduction;
+        document.getElementById('nextBtn').onclick = () => navigate(1);
+        document.getElementById('prevBtn').onclick = () => navigate(-1);
+        document.getElementById('speakBtn').onclick = playAudio;
+        document.getElementById('saveHtmlBtn').onclick = exportComic;
+        document.getElementById('homeBtn').onclick = () => {
+            if(confirm("Bail out to the main menu? Progress will be lost.")) location.reload();
+        };
+
+        async function startComicProduction() {
+            if (isProducing) return;
+            const idea = document.getElementById('ideaInput').value.trim();
+            const pages = parseInt(document.getElementById('pageCount').value);
+            const style = document.getElementById('styleSelect').value;
+            const customTitle = document.getElementById('comicTitle').value.trim();
+            const customAuthor = document.getElementById('authorName').value.trim() || "The Architect";
+
+            if (!idea) return;
+            isProducing = true;
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            
+            try {
+                const systemPrompt = `You are a Comic Book Architect. Create an ${pages}-page story based on the user's idea.
+                IMPORTANT: Maintain strict visual consistency for characters.
+                
+                Format your output as JSON:
+                {
+                  "title": "Generated Title",
+                  "author": "${customAuthor}",
+                  "panels": [
+                    {
+                      "page": 1,
+                      "text": "Narrative caption.",
+                      "imagePrompt": "Style: ${style}. Consistent character detail."
+                    }
+                  ]
+                }`;
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: idea }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
+
+                const result = await response.json();
+                const parsed = JSON.parse(result.candidates[0].content.parts[0].text);
+                
+                comicMetadata.title = customTitle || parsed.title;
+                comicMetadata.author = customAuthor;
+                comicData = parsed.panels;
+                
+                document.getElementById('setup-section').classList.add('hidden');
+                document.getElementById('comic-reader').classList.remove('hidden');
+                document.getElementById('homeBtn').classList.remove('hidden');
+                currentIndex = 0;
+                await loadPage(0);
+
+            } catch (e) {
+                alert("Logic Weaver Error: " + e.message);
+                isProducing = false;
+                document.getElementById('loadingIndicator').classList.add('hidden');
+            }
+        }
+
+        async function loadPage(index) {
+            if (index >= comicData.length) {
+                showCredits();
+                return;
+            }
+
+            document.getElementById('panel-content').classList.remove('hidden');
+            document.getElementById('credits-content').classList.add('hidden');
+            document.getElementById('reader-controls').classList.remove('hidden');
+
+            const page = comicData[index];
+            document.getElementById('pageLoader').classList.remove('hidden');
+            document.getElementById('pageNumber').innerText = `PAGE ${index + 1} / ${comicData.length}`;
+            document.getElementById('currentText').innerText = page.text;
+            
+            // Image Generation & Caching
+            if (!page.imageData) {
+                try {
+                    const imgRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${imageModel}:predict?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            instances: { prompt: page.imagePrompt },
+                            parameters: { sampleCount: 1, aspectRatio: "16:9" }
+                        })
+                    });
+                    const imgData = await imgRes.json();
+                    page.imageData = `data:image/png;base64,${imgData.predictions[0].bytesBase64Encoded}`;
+                } catch (e) {
+                    page.imageData = "https://via.placeholder.com/1600x900?text=Visual+Manifestation+Failed";
+                }
+            }
+            
+            // Audio Generation & Caching
+            if (!page.audioData) {
+                const voice = document.getElementById('voiceSelect')?.value || "Kore";
+                try {
+                    // Fix: Updated payload structure for gemini-2.5-flash-preview-tts
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${ttsModel}:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: page.text }] }],
+                            model: ttsModel,
+                            generationConfig: { 
+                                responseModalities: ["AUDIO"],
+                                speechConfig: { 
+                                    voiceConfig: { 
+                                        prebuiltVoiceConfig: { 
+                                            voiceName: voice 
+                                        } 
+                                    } 
+                                }
+                            }
+                        })
+                    });
+                    const data = await res.json();
+                    
+                    // The audio data is at result.candidates[0].content.parts[0].inlineData.data
+                    const part = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+                    if (part && part.data) {
+                        page.audioData = part.data;
+                    } else {
+                        throw new Error("Invalid audio response format");
+                    }
+                } catch (e) { 
+                    console.error("Audio generation failed:", e); 
+                }
+            }
+
+            document.getElementById('currentImage').src = page.imageData;
+            document.getElementById('pageLoader').classList.add('hidden');
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').innerText = index === comicData.length - 1 ? "FINISH" : "NEXT";
+            
+            playAudio();
+        }
+
+        function showCredits() {
+            document.getElementById('panel-content').classList.add('hidden');
+            document.getElementById('reader-controls').classList.add('hidden');
+            document.getElementById('credits-content').classList.remove('hidden');
+            document.getElementById('finalTitleDisplay').innerText = comicMetadata.title;
+            document.getElementById('finalAuthorDisplay').innerText = comicMetadata.author;
+        }
+
+        function navigate(dir) {
+            const newIndex = currentIndex + dir;
+            if (newIndex >= 0 && newIndex <= comicData.length) {
+                currentIndex = newIndex;
+                loadPage(currentIndex);
+            }
+        }
+
+        async function playAudio() {
+            if (currentIndex >= comicData.length || !comicData[currentIndex].audioData) return;
+            const btn = document.getElementById('speakBtn');
+            btn.classList.add('animate-pulse');
+
+            try {
+                const audioBlob = pcmToWav(new Int16Array(base64ToArrayBuffer(comicData[currentIndex].audioData)), 24000);
+                const audio = new Audio(URL.createObjectURL(audioBlob));
+                audio.play();
+            } catch (e) { console.error("Playback error", e); }
+            finally { btn.classList.remove('animate-pulse'); }
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const bin = atob(base64);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm, rate) {
+            const buffer = new ArrayBuffer(44 + pcm.length * 2);
+            const view = new DataView(buffer);
+            const writeStr = (off, s) => { for(let i=0; i<s.length; i++) view.setUint8(off+i, s.charCodeAt(i)); };
+            writeStr(0, 'RIFF'); view.setUint32(4, 36 + pcm.length * 2, true);
+            writeStr(8, 'WAVE'); writeStr(12, 'fmt '); view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); view.setUint16(22, 1, true); view.setUint32(24, rate, true);
+            view.setUint32(28, rate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+            writeStr(36, 'data'); view.setUint32(40, pcm.length * 2, true);
+            for(let i=0; i<pcm.length; i++) view.setInt16(44 + i*2, pcm[i], true);
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function exportComic() {
+            // 1. Prepare data bundle
+            const bundle = {
+                metadata: comicMetadata,
+                panels: comicData.map(p => ({
+                    text: p.text,
+                    imageData: p.imageData,
+                    audioData: p.audioData
+                }))
+            };
+
+            // 2. Clone document and inject bundle
+            const clone = document.documentElement.cloneNode(true);
+            const dataScript = clone.querySelector('#embedded-data');
+            dataScript.innerText = JSON.stringify(bundle);
+
+            // 3. Clear transient inputs in the clone
+            clone.querySelector('#ideaInput').value = "";
+            
+            const html = "<!DOCTYPE html>\n" + clone.outerHTML;
+            const blob = new Blob([html], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = (comicMetadata.title.replace(/\s+/g, '_') || 'My_Comic') + '_Cartridge.html';
+            a.click();
+        }
+    </script>
+</body>
+</html>
