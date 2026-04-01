@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Music Stand V1.8</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #020617; color: #e2e8f0; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .music-stand { 
+            background: #111827; 
+            border: 2px solid #374151;
+            border-radius: 8px;
+        }
+        .log-table-container { 
+            height: 600px; 
+            overflow-y: auto; 
+        }
+        .note-input { 
+            background: #1f2937; 
+            border: 1px solid #374151; 
+            padding: 4px 8px;
+            width: 100%; 
+            color: white; 
+            border-radius: 4px;
+        }
+        .note-input:focus { outline: 2px solid #3b82f6; background: #111827; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 gap-6 border-b border-slate-800 pb-6">
+            <div class="space-y-4">
+                <h1 class="text-4xl font-black tracking-tighter text-white uppercase">Interactive Music Stand <span class="text-blue-500 text-2xl">V1.8</span></h1>
+                
+                <div class="flex flex-wrap gap-6 mt-4">
+                    <div class="w-80">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Title for this Song/Session</label>
+                        <input type="text" id="songTitle" placeholder="Enter song title..." class="bg-slate-900 border border-slate-700 rounded px-3 py-2 w-full text-white focus:border-blue-500 focus:outline-none">
+                    </div>
+                    <div class="w-80">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Audio Source</label>
+                        <input type="file" id="audioUpload" accept="audio/*,video/*" class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-900/30 file:text-blue-400 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-3">
+                <button id="downloadLog" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-sm font-bold shadow-lg transition-all flex items-center gap-2">
+                    Save to Text File
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Analytics Column -->
+            <div class="lg:col-span-4 space-y-6">
+                <div class="music-stand p-8 aspect-square flex flex-col items-center justify-center relative overflow-hidden">
+                    <canvas id="canvas" class="absolute inset-0 opacity-30"></canvas>
+                    <div class="z-10 text-center">
+                        <div id="noteDisplay" class="text-9xl font-black text-white leading-none">--</div>
+                        <div id="freqDisplay" class="text-xl font-mono text-blue-400 mt-4 tracking-widest">0.00 Hz</div>
+                    </div>
+                </div>
+                
+                <!-- Sensitivity Logic -->
+                <div class="p-6 bg-slate-900 border border-slate-800 rounded-lg space-y-4">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Detection Sensitivity (Noise Floor)</label>
+                    <input type="range" id="sensitivity" min="0.005" max="0.1" step="0.005" value="0.02" class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500">
+                    <div class="flex justify-between text-[10px] font-mono text-slate-500 uppercase">
+                        <span>Capture Everything</span>
+                        <span>Ignore Finger Squeaks</span>
+                    </div>
+                </div>
+
+                <audio id="audioPlayer" controls class="w-full"></audio>
+                
+                <div class="p-4 bg-slate-900 border border-slate-800 rounded text-[11px] text-slate-500 leading-relaxed italic">
+                    Note: Adjust the slider to the right if the ledger is recording too many "fake" notes from finger slides or background noise.
+                </div>
+            </div>
+
+            <!-- Ledger Column -->
+            <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex flex-col">
+                <div class="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
+                    <h2 class="text-sm font-black text-slate-200 uppercase tracking-widest">Permanent Session Ledger</h2>
+                    <span id="logCount" class="text-[10px] bg-blue-900 text-blue-300 px-3 py-1 rounded font-bold">0 ENTRIES</span>
+                </div>
+                
+                <div class="log-table-container">
+                    <table id="ledgerTable" class="w-full text-left border-collapse">
+                        <thead class="sticky top-0 bg-slate-900 text-[10px] uppercase text-slate-500 font-bold border-b border-slate-700 z-20">
+                            <tr>
+                                <th class="p-4 w-24">Time</th>
+                                <th class="p-4 w-20">Note</th>
+                                <th class="p-4 w-32">Freq</th>
+                                <th class="p-4">Personal Session Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logBody" class="font-mono text-sm text-slate-300 divide-y divide-slate-800">
+                            <!-- Dynamic Entries -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audioUpload = document.getElementById('audioUpload');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const songTitleInput = document.getElementById('songTitle');
+        const sensitivityInput = document.getElementById('sensitivity');
+        const noteDisplay = document.getElementById('noteDisplay');
+        const freqDisplay = document.getElementById('freqDisplay');
+        const logBody = document.getElementById('logBody');
+        const logCount = document.getElementById('logCount');
+        const canvas = document.getElementById('canvas');
+        const downloadBtn = document.getElementById('downloadLog');
+        const ctx = canvas.getContext('2d');
+
+        let audioCtx, analyzer, source, animationId;
+        let sessionData = [];
+        let lastNote = "";
+        const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+        audioUpload.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            audioPlayer.src = URL.createObjectURL(file);
+            initAudio();
+        });
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (source) source.disconnect();
+            analyzer = audioCtx.createAnalyser();
+            analyzer.fftSize = 2048;
+            source = audioCtx.createMediaElementSource(audioPlayer);
+            source.connect(analyzer);
+            analyzer.connect(audioCtx.destination);
+            startAnalysis();
+        }
+
+        function startAnalysis() {
+            const buffer = new Float32Array(analyzer.fftSize);
+            function loop() {
+                analyzer.getFloatTimeDomainData(buffer);
+                const pitch = autoCorrelate(buffer, audioCtx.sampleRate);
+                if (pitch !== -1) {
+                    const noteNum = noteFromPitch(pitch);
+                    const noteName = noteStrings[noteNum % 12];
+                    if (lastNote !== noteName) {
+                        lastNote = noteName;
+                        noteDisplay.innerText = noteName;
+                        addToLog(noteName, pitch);
+                    }
+                    freqDisplay.innerText = pitch.toFixed(2) + " Hz";
+                } else {
+                    noteDisplay.innerText = "--";
+                }
+                drawWave();
+                animationId = requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        function autoCorrelate(buf, sampleRate) {
+            let SIZE = buf.length;
+            let rms = 0;
+            for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
+            rms = Math.sqrt(rms / SIZE);
+            
+            // This is the sensitivity check
+            if (rms < parseFloat(sensitivityInput.value)) return -1;
+
+            let r1 = 0, r2 = SIZE - 1, thres = 0.2;
+            for (let i = 0; i < SIZE / 2; i++) if (Math.abs(buf[i]) < thres) { r1 = i; break; }
+            for (let i = 1; i < SIZE / 2; i++) if (Math.abs(buf[SIZE - i]) < thres) { r2 = SIZE - i; break; }
+            buf = buf.slice(r1, r2);
+            SIZE = buf.length;
+            let c = new Array(SIZE).fill(0);
+            for (let i = 0; i < SIZE; i++) {
+                for (let j = 0; j < SIZE - i; j++) c[i] = c[i] + buf[j] * buf[j + i];
+            }
+            let d = 0; while (c[d] > c[d + 1]) d++;
+            let maxval = -1, maxpos = -1;
+            for (let i = d; i < SIZE; i++) { if (c[i] > maxval) { maxval = c[i]; maxpos = i; } }
+            return sampleRate / maxpos;
+        }
+
+        function noteFromPitch(freq) { return Math.round(12 * (Math.log(freq / 440) / Math.log(2))) + 69; }
+
+        function addToLog(note, freq) {
+            const time = audioPlayer.currentTime.toFixed(2);
+            const entryId = Date.now();
+            const entry = { id: entryId, time, note, freq: freq.toFixed(1), personalNote: "" };
+            sessionData.push(entry);
+            const tr = document.createElement('tr');
+            tr.id = `row-${entryId}`;
+            tr.innerHTML = `
+                <td class="p-4 text-blue-400 font-bold">${time}s</td>
+                <td class="p-4 text-white font-bold">${note}</td>
+                <td class="p-4 text-slate-500">${freq.toFixed(1)}Hz</td>
+                <td class="p-4"><input type="text" placeholder="Note on fingering/feel..." class="note-input" onchange="updateEntryNote(${entryId}, this.value)"></td>
+            `;
+            logBody.prepend(tr);
+            logCount.innerText = `${sessionData.length} ENTRIES`;
+        }
+
+        window.updateEntryNote = (id, val) => {
+            const index = sessionData.findIndex(item => item.id === id);
+            if (index !== -1) sessionData[index].personalNote = val;
+        };
+
+        function drawWave() {
+            const data = new Uint8Array(analyzer.frequencyBinCount);
+            analyzer.getByteTimeDomainData(data);
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = '#3b82f6';
+            ctx.beginPath();
+            let sliceWidth = canvas.width / data.length;
+            let x = 0;
+            for(let i=0; i<data.length; i++) {
+                let v = data[i] / 128.0;
+                let y = v * canvas.height / 2;
+                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                x += sliceWidth;
+            }
+            ctx.stroke();
+        }
+
+        downloadBtn.addEventListener('click', () => {
+            const title = songTitleInput.value || "Musical_Session_Log";
+            const dateStr = new Date().toLocaleString();
+            let text = `SESSION REPORT: ${title}\nDATE: ${dateStr}\n\n`;
+            text += "TIME | NOTE | FREQ | SESSION NOTES\n";
+            text += "--------------------------------------------------\n";
+            const sorted = [...sessionData].sort((a,b) => a.time - b.time);
+            sorted.forEach(d => {
+                text += `${d.time}s | ${d.note} | ${d.freq}Hz | ${d.personalNote}\n`;
+            });
+            const blob = new Blob([text], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${title.replace(/\s+/g, '_')}.txt`;
+            a.click();
+        });
+    </script>
+</body>
+</html>
