@@ -3,6 +3,8 @@
 # CEPHALOPODAI | Intelligent Design | LLM Interface System
 ### Local Intelligence Workspace Terminal — Release V2.0
 
+Academic Research: This project is built on the research paper: CephalopodAI: Universal Cognitive Sovereignty, Architecting Cloud-Free, Sovereign Intelligence for Professional Ethics and Personal Privacy (SSRN ID: 6850280).
+
 ================================================================================
 1. PROJECT VISION & SYSTEMS PHILOSOPHY
 ================================================================================
