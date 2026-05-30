@@ -8,12 +8,7 @@ Academic Research: This project is built on the research paper: CephalopodAI: Un
 ================================================================================
 1. PROJECT VISION & SYSTEMS PHILOSOPHY
 ================================================================================
-
-Welcome to CephalopodAI, a self-contained, stateless, edge-optimized terminal 
-designed to serve as a highly collaborative local writing and engineering 
-workbench. This system bridges the architectural gap between local large 
-language models (LLMs), real-time external data retrieval, and active 
-workspace rendering. 
+Welcome to CephalopodAI, a self-contained, stateless, edge-optimized terminal designed to serve as a highly collaborative local writing and engineering workbench. This system bridges the architectural gap between local large language models (LLMs), real-time external data retrieval, and active workspace rendering.
 
 By fusing the local execution power of Ollama with the optimized weights of 
 the Gemma 4:e2b model and our decoupled backend routing layer, this framework 
