@@ -1,78 +1,68 @@
 ================================================================================
-SOVEREIGN COMMONS PUBLIC LICENSE
+SOVEREIGN COMMONS PUBLIC LICENSE (SCPL)
 Version 1.0 - Dual-Utility Framework (Freedom & Sovereign Protection)
 Author / Licensor: Barry M. Curran Sr. (PhilosopAI-Cohort)
+================================================================================
 
-All software, source code, architectural frameworks, documentation, and associated
-design templates distributed under this repository or within this software package
+All software, source code, architectural frameworks, documentation, and associated 
+design templates distributed under this repository or within this software package 
 are licensed under the core structural terms of the Creative Commons Attribution-
-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0), augmented,
+NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0), augmented, 
 unified, and bound by the explicit, non-negotiable legal addendums detailed below.
 
-By installing, copying, caching, executing, remixing, or adapting this software,
+By installing, copying, caching, executing, remixing, or adapting this software, 
 you explicitly agree to be bound by these unified terms.
 
+---
 CORE INTELLECTUAL FREEDOM (PERMITTED USES)
+---
 
 Individual & Academic Freedom:
-Any individual, independent researcher, academic, hobbyist, or student is
-granted an absolute, royalty-free, perpetual license to download, execute,
-modify, and utilize this software locally for private use, self-education,
+Any individual, independent researcher, academic, hobbyist, or student is 
+granted an absolute, royalty-free, perpetual license to download, execute, 
+modify, and utilize this software locally for private use, self-education, 
 and personal intellectual development.
 
 Workplace & Operational Productivity:
-Absolute permission is expressly granted to any private professional (including
-but not limited to lawyers, medical practitioners, engineers, authors, and
-data analysts), independent contractor, or small business entity to execute
-and run this software locally for internal productivity, daily business
-operations, research compilation, and private workplace workflows. Utilizing
-this tool to assist in your daily job or internal business management is
+Absolute permission is expressly granted to any private professional (including 
+but not limited to lawyers, medical practitioners, engineers, authors, and 
+data analysts), independent contractor, or small business entity to execute 
+and run this software locally for internal productivity, daily business 
+operations, research compilation, and private workplace workflows. Utilizing 
+this tool to assist in your daily job or internal business management is 
 100% permitted, authorized, and encouraged.
 
 The ShareAlike Covenant:
-You are free to remix, transform, and build upon this code package, provided
-that any derivative versions, adapted frameworks, or modified variants you
-distribute are released under this exact same Sovereign Commons Public License
-framework. You cannot lock modified versions away in a proprietary or
+You are free to remix, transform, and build upon this code package, provided 
+that any derivative versions, adapted frameworks, or modified variants you 
+distribute are released under this exact same Sovereign Commons Public License 
+framework. You cannot lock modified versions away in a proprietary or 
 closed-source container.
 
+---
 SOVEREIGN PROTECTION MATRIX (STRICTLY PROHIBITED USES)
+---
 
 Prohibition of Commercial Exploitation and Resale:
-You are strictly prohibited from commercializing this software core, its
-proprietary source code scripts, its unique graphical user interface
-configurations, its multi-panel workspace logic, or its backend tool routing
-systems. You cannot sell copies of this software, put it behind a paid
+You are strictly prohibited from commercializing this software core, its 
+proprietary source code scripts, its unique graphical user interface 
+configurations, its multi-panel workspace logic, or its backend tool routing 
+systems. You cannot sell copies of this software, put it behind a paid 
 subscription firewall, charge access fees, or market it as a commercial product.
 
 Prohibition of Corporate Packaging & SaaS Integration:
-Mega-corporations, commercial software conglomerates, cloud-service hosting
-providers, and corporate software distributors are explicitly barred from
-absorbing, embedding, or bundling this software or its unique layout designs
-into closed-source ecosystems, proprietary application suites, or commercial
+Mega-corporations, commercial software conglomerates, cloud-service hosting 
+providers, and corporate software distributors are explicitly barred from 
+absorbing, embedding, or bundling this software or its unique layout designs 
+into closed-source ecosystems, proprietary application suites, or commercial 
 Software-as-a-Service (SaaS) frameworks.
 
 Enforcement Against Telemetry Harvesting:
-This software is engineered specifically as a 100% locally-contained environment
-to defend data privacy and secure intellectual sovereignty. Any attempt by
-a corporate entity to modify this software for the purpose of re-introducing
-centralized telemetry harvesting, user monitoring, or automated data mining
+This software is engineered specifically as a 100% locally-contained environment 
+to defend data privacy and secure intellectual sovereignty. Any attempt by 
+a corporate entity to modify this software for the purpose of re-introducing 
+centralized telemetry harvesting, user monitoring, or automated data mining 
 is a direct, actionable violation of this license.
 
+---
 ATTRIBUTION REQUIREMENT
-
-Any distribution of the original source code, modified variants, or structural
-layout templates must retain this complete, unedited license file and provide
-prominent, explicit attribution to the original author:
-Barry M. Curran Sr. (PhilosopAI-Cohort).
-
-LEGAL DISCLAIMER & WARRANTY
-
-This software is provided by the copyright holders and contributors "as is" and
-any express or implied warranties, including, but not limited to, the implied
-warranties of merchantability and fitness for a particular purpose are
-disclaimed. In no event shall the copyright holder be liable for any direct,
-indirect, incidental, special, exemplary, or consequential damages arising in
-any way out of the use of this software.
-
-================================================================================
