@@ -6,7 +6,7 @@
 Academic Research: This project is built on the research paper: CephalopodAI: Universal Cognitive Sovereignty, Architecting Cloud-Free, Sovereign Intelligence for Professional Ethics and Personal Privacy (SSRN ID: 6850280).
 
 ================================================================================
-1. PROJECT VISION & SYSTEMS PHILOSOPHY
+PROJECT VISION & SYSTEMS PHILOSOPHY
 ================================================================================
 
 Welcome to CephalopodAI, a self-contained, stateless, edge-optimized terminal, an Agentic GUI, designed to serve as a highly collaborative local writing and engineering workbench. This system bridges the architectural gap between local large language models (LLMs), real-time external data retrieval, and active workspace rendering.
