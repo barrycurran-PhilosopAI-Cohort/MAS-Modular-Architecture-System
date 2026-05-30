@@ -120,12 +120,15 @@ Step 3: Assemble the Local Workspace
 --------------------------------------------------------------------------------
 1. Create a folder named lowercase "toolserver" on your Windows Desktop.  
 2. Place your package.json and toolserver.js files directly inside that 
-   directory path: (C:\Users\barry\Desktop\toolserver).  
-3. Open a Command Prompt, navigate to the folder, and install the network 
-   scraping dependencies by running these lines:  
+   directory path (e.g., C:\Users\YOUR_NAME\Desktop\toolserver).  
+3. Open a Command Prompt, navigate to the folder where you placed the files, 
+   and install the network scraping dependencies by running these lines:  
 
-   cd c:\Users\barry\Desktop\toolserver
+   cd C:\Users\YOUR_NAME\Desktop\toolserver
    npm install
+
+(Note: Replace "YOUR_NAME" in the command above with your actual Windows username, 
+or navigate to your specific folder path.)
 
 --------------------------------------------------------------------------------
 Step 4: System Execution Sequence
