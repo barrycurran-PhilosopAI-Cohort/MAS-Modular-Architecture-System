@@ -32,9 +32,9 @@ independent builder cobbling an AI workstation together from spare parts,
 CephalopodAI delivers professional-grade computational intelligence directly 
 to your desktop.  
 
-================================================================================
+
 2. REPOSITORY FILE MANIFEST
-================================================================================
+
 
 This repository contains the following core files. Ensure all background 
 scripts and interfaces are kept in their matching directories to preserve 
@@ -64,9 +64,9 @@ relative cross-panel path routing:
   - The backend tool utility engine managing local web scraping, network 
     sifting, and live data lookup injections.  
 
-================================================================================
+
 3. CORE HARDWARE VERIFICATION
-================================================================================
+
 
 To run local inference via the Gemma 4:e2b engine without system latency loops 
 or bottlenecks, verify your machine meets or exceeds these verified parameters:  
@@ -81,9 +81,9 @@ or bottlenecks, verify your machine meets or exceeds these verified parameters:
 the model directly into high-speed GPU cache, guaranteeing instant execution 
 and preventing lockups during massive sessions.  
 
-================================================================================
+
 4. QUICK-START INSTALLATION GUIDE
-================================================================================
+
 
 --------------------------------------------------------------------------------
 Step 1: Initialize the Ollama Engine
@@ -143,9 +143,9 @@ Go to your repository folder, right-click the file named
 CEPHLOPODAI_INTERFACE_Itellectual_Freedom_V2.0.html, select "Open With", 
 and choose Google Chrome or Microsoft Edge.  
 
-================================================================================
+
 5. COMPLETE WORKSPACE MASTER GUIDE
-================================================================================
+
 
 The interface divides operational labor into three distinct zones to maintain 
 non-linear text creation workflows without losing data focus:  
@@ -226,9 +226,9 @@ D. Multi-Modal Ingestion & Local Sandbox
   browser environment, making it perfect for rapid prototyping without 
   affecting your system's security layers.  
 
-================================================================================
+
 6. REPOSITORY LICENSING MATRIX
-================================================================================
+
 
 This repository is protected and governed by the Sovereign Commons Public 
 License (SCPL Version 1.0), combining the structural rules of CC BY-NC-SA 4.0 
