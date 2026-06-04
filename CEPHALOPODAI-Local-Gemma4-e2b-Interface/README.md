@@ -1,6 +1,24 @@
 CEPHALOPODAI | Intelligent Design | LLM Interface System
 
-Local Intelligence Workspace Terminal — Release V2.0
+📢 CEPHLOPODAI_INTERFACE_Itellectual_Freedom_V4_0.html Production Release & Repository Reorganization
+
+To maintain absolute transparency and support early testers, this repository has been updated with the definitive production build:
+
+📦 Version 4.0 is now active in the main directory (CEPHLOPODAI_INTERFACE_Itellectual_Freedom_V4_0.html).
+
+📜 Version 2.0 has been preserved and moved into the /legacy_v2.0 subfolder for anyone who prefers the original baseline or wants to compare architectures (CEPHLOPODAI_INTERFACE_Itellectual_Freedom_V2_0.html).
+
+🔄 What's Changed in V4.0 The system architecture, installation sequence, and underlying logic remain identical to the core project philosophy. However, V4.0 introduces the following key optimizations:
+
+Embedded Sandbox Viewport: You can now run and manipulate code live right inside the application window. The tool no longer redirects or shells out to a separate browser tab.
+
+Refined UI Layout: Minor structural adjustments to the size and alignment of the variable panels for a cleaner, more responsive aesthetic feel.
+
+Session Stability: General under-the-hood optimization for smoother execution state management.
+
+📚 Documentation Note Because this project is a free, sovereign open-source research initiative, the attached Master Reference Manuals and Setup Handbooks (.docx, .pdf, .txt) still reference the "V2.0" naming convention. The step-by-step instructions in those guides remain 100% accurate for setting up and running V4.0.
+
+Local Intelligence Workspace Terminal — Release V4.0
 
 Academic Research: This project is built on the research paper: CephalopodAI: Universal Cognitive Sovereignty, Architecting Cloud-Free, Sovereign Intelligence for Professional Ethics and Personal Privacy (SSRN ID: 6850280).
 
@@ -20,35 +38,32 @@ REPOSITORY FILE MANIFEST
 
 This repository contains the following core files. Ensure all background scripts and interfaces are kept in their matching directories to preserve relative cross-panel path routing:
 
-CEPHALOPODAI Intelligent Design LLM Interface3.docx
-The complete v12 master system reference manual.
+CEPHALOPODAI Intelligent Design LLM Interface3.docx: The complete v12 master system reference manual.
 
-SYSTEM_SETUP_AND_INSTALLATION_GUIDE.docx
-The foundational deployment and hardware verification handbook.
+SYSTEM_SETUP_AND_INSTALLATION_GUIDE.docx: The foundational deployment and hardware verification handbook.
 
-CEPHALOPODAI Intelligent Design LLM Interface3.txt
-Plaintext backup of the technical user manual for terminal reference.
+CEPHALOPODAI Intelligent Design LLM Interface3.txt: Plaintext backup of the technical user manual for terminal reference.
 
-README.MD
-This primary portal documentation file.
+README.MD: This primary portal documentation file.
 
-CEPHLOPODAI_INTERFACE_Itellectual_Freedom_V2.0.html
-The core frontend application. A hardware-efficient, sleek, true AMOLED pitch-black control room window.
+CEPHLOPODAI_INTERFACE_Itellectual_Freedom_V4.0.html: The core frontend application. A hardware-efficient, sleek, true AMOLED pitch-black control room window.
 
-Package.json
-Manifest file establishing dependencies and configuring modern ES module syntax handling.
+Package.json: Manifest file establishing dependencies and configuring modern ES module syntax handling.
 
-Toolserver.js
-The backend tool utility engine managing local web scraping, network sifting, and live data lookup injections.
+Toolserver.js: The backend tool utility engine managing local web scraping, network sifting, and live data lookup injections.
 
 CORE HARDWARE VERIFICATION
 
 To run local inference via the Gemma 4:e2b engine without system latency loops or bottlenecks, verify your machine meets or exceeds these verified parameters:
 
 Processor (CPU): Intel Core i5-10600K @ 4.10 GHz (or multi-core equivalent).
+
 System Memory (RAM): 32 GB DDR4 @ 3000 MT/s.
+
 Graphics Card (GPU): NVIDIA GeForce GTX 1080 Ti with 11 GB VRAM (Critical).
+
 Storage Space: Solid State Drive (SSD) with 20 GB to 30 GB of free space.
+
 Operating System (OS): Microsoft Windows 10 or Windows 11 (64-bit Architecture).
 
 [Hardware Note]: 11 GB of VRAM is required to load the full weights matrix of the model directly into high-speed GPU cache, guaranteeing instant execution and preventing lockups during massive sessions.
@@ -56,27 +71,36 @@ Operating System (OS): Microsoft Windows 10 or Windows 11 (64-bit Architecture).
 QUICK-START INSTALLATION GUIDE
 
 Step 1: Initialize the Ollama Engine
-Go online and download the setup bundle from https://ollama.com/.
-Run OllamaSetup.exe and complete the on-screen installer prompts.
-Verify the Llama background icon is active within your Windows taskbar tray.
-Open your Command Prompt (cmd) and pull down the model weights by executing the following command exactly: ollama run gemma4:e2b
+
+Go online and download the setup bundle from https://ollama.com/. Run OllamaSetup.exe and complete the on-screen installer prompts. Verify the Llama background icon is active within your Windows taskbar tray. Open your Command Prompt (cmd) and pull down the model weights by executing the following command exactly:
+
+ollama run gemma4:e2b
+
 Once the download progress finishes, type /exit and hit Enter to close the active model prompt loop.
 
 Step 2: Establish the Node.js Runtime
-Navigate to https://nodejs.org/ and download the LTS (Long Term Support) version installer.
-Run the installer, accept the terms, and check the box to install tools for native modules before clicking Finish.
-Open a fresh Command Prompt window (cmd) and verify your system execution paths by typing: node -v npm -v
+
+Navigate to https://nodejs.org/ and download the LTS (Long Term Support) version installer. Run the installer, accept the terms, and check the box to install tools for native modules before clicking Finish. Open a fresh Command Prompt window (cmd) and verify your system execution paths by typing:
+
+node -v
+npm -v
 
 Step 3: Assemble the Local Workspace
-Create a folder named lowercase "toolserver" on your Windows Desktop.
-Place your package.json and toolserver.js files directly inside that directory path (e.g., C:\Users\YOUR_NAME\Desktop\toolserver).
-Open a Command Prompt, navigate to the folder where you placed the files, and install the network scraping dependencies by running these lines: cd C:\Users\YOUR_NAME\Desktop\toolserver npm install
+
+Create a folder named lowercase "toolserver" on your Windows Desktop. Place your package.json and toolserver.js files directly inside that directory path (e.g., C:\Users\YOUR_NAME\Desktop\toolserver). Open a Command Prompt, navigate to the folder where you placed the files, and install the network scraping dependencies by running these lines:
+
+cd C:\Users\YOUR_NAME\Desktop\toolserver
+npm install
+
 (Note: Replace "YOUR_NAME" in the command above with your actual Windows username, or navigate to your specific folder path.)
 
 Step 4: System Execution Sequence
+
 [Launch Backend]: In your open terminal directory, execute the background bridge tool: node toolserver.js
+
 Confirm that the prompt returns: "Server Active on 3001". Minimize this command window; do not close it.
-[Launch Frontend]: Go to your repository folder, right-click the file named CEPHLOPODAI_INTERFACE_Itellectual_Freedom_V2.0.html, select "Open With", and choose Google Chrome or Microsoft Edge.
+
+[Launch Frontend]: Go to your repository folder, right-click the file named CEPHLOPODAI_INTERFACE_Itellectual_Freedom_V4.0.html, select "Open With", and choose Google Chrome or Microsoft Edge.
 
 COMPLETE WORKSPACE MASTER GUIDE
 
@@ -84,30 +108,21 @@ The interface divides operational labor into three distinct zones to maintain no
 
 STATUS BAR: Live Time & Cumulative Token Diagnostics
 
-LEFT PANEL: PIPELINE CORE
-[Active Chat Log Terminal]
+LEFT PANEL: PIPELINE CORE [Active Chat Log Terminal]
 
 Displays chron streams.
-[Prompt Input Textarea]
 
-Draft instructions/queries.
+[Prompt Input Textarea]: Draft instructions/queries.
 
-RIGHT PANEL: PERSISTENT WORKSPACE
-[The Canvas Workspace Area]
+RIGHT PANEL: PERSISTENT WORKSPACE [The Canvas Workspace Area]
 
 100% independent text scratchpad.
 
 Keeps core documents from scrolling away or burying under logs.
-[Canvas Controls]
 
-Save Canvas (UNIVERSAL .MD EXPORT)
+[Canvas Controls]: Save Canvas (UNIVERSAL .MD EXPORT), Send Canvas to Prompt Bridge
 
-Send Canvas to Prompt Bridge
-[Live Code Sandbox]
-
-Green-on-black layout.
-
-Run HTML/CSS/JS instantly.
+[Live Code Sandbox]: Green-on-black layout. Run HTML/CSS/JS instantly.
 
 A. The Core Interaction Methods
 
@@ -125,24 +140,22 @@ C. Cognitive State Management
 
 Save Session: Compiles your active session title, exact time markers, total token metrics, and the absolute chronological messageHistory into a portable .json file. This acts as a portable "state cartridge".
 
-Load Session: Wipes the existing window and reloads a saved .json cartridge file. This clears the view and resets the model’s active working memory cache, protecting you from text drift and allowing you to instantly hop between unrelated projects (e.g., swapping from data analysis code straight into creative fiction writing).
+Load Session: Wipes the existing window and reloads a saved .json cartridge file. This clears the view and resets the model’s active working memory cache, protecting you from text drift and allowing you to instantly hop between unrelated projects.
 
 D. Multi-Modal Ingestion & Local Sandbox
 
 Direct File Dropping: Drag and drop .txt, .md, or .json files straight into the workspace to render them instantly. Dropping .docx files activates the integrated Mammoth.js tool to strip away proprietary styles and extract raw text natively into your panels.
 
-The Sandbox Runner: Paste HTML, CSS, or JavaScript blocks into the execution bay and click Run Code. It builds and fires prototypes instantly inside an isolated browser environment, making it perfect for rapid prototyping without affecting your system's security layers.
+The Sandbox Runner: Paste HTML, CSS, or JavaScript blocks into the execution bay and click Run Code. It builds and fires prototypes instantly inside an isolated browser environment.
 
 REPOSITORY LICENSING MATRIX
 
 This repository is protected and governed by the Sovereign Commons Public License (SCPL Version 1.0), combining the structural rules of CC BY-NC-SA 4.0 with specific user addendums:
 
-Individual, Academic, & Professional Freedom (PERMITTED): Absolute permission is granted to any individual, researcher, hobbyist, small business entity, or private professional (lawyers, doctors, writers, engineers) to run, execute, modify, and utilize this tool locally for internal productivity, daily business workflows, and private research. Using this tool to help perform your daily work is 100% authorized, legal, and encouraged.
+Individual, Academic, & Professional Freedom (PERMITTED): Absolute permission is granted to any individual, researcher, hobbyist, small business entity, or private professional to run, execute, modify, and utilize this tool locally for internal productivity, daily business workflows, and private research.
 
-Corporate Exploitation Barrier (PROHIBITED): Mega-corporations, corporate software conglomerates, and commercial software distributors are strictly prohibited from commercializing this software core, its unique layout design, or its twin-panel telemetry bridge. You cannot sell copies of this software, bundle it into commercial application packages, or integrate it into cloud-hosted, paid subscription Software-as-a-Service (SaaS) frameworks.
+Corporate Exploitation Barrier (PROHIBITED): Mega-corporations, corporate software conglomerates, and commercial software distributors are strictly prohibited from commercializing this software core, its unique layout design, or its twin-panel telemetry bridge.
 
 Telemetry Enforcement: Any attempt by a corporate entity to adapt or distribute this software for the purpose of re-introducing centralized telemetry harvesting, user logging, or data mining is a direct violation of this license.
 
 For the unedited, full legal text and warranty disclaimers, review the master LICENSE.txt file located within the root directory of this repository.
-
-the architect
