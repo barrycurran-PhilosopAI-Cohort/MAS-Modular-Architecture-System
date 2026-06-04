@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CEPHALOPODAI_INTERFACE_Dark_Mode_V12_Enhanced</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --border-color: #333333;
+            --button-blue: #4169e1;
+            --pea-green: #7cfc00;
+            --font-main: 'Inter', 'Segoe UI', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        body { font-family: var(--font-main); display: flex; flex-direction: column; min-height: 100vh; margin: 0; background: var(--bg-color); color: var(--text-color); }
+        
+        #status-bar { height: 60px; background: #000000; color: #ffffff; display: flex; align-items: center; padding: 0 20px; font-size: 14px; font-family: var(--font-mono); border-bottom: 2px solid var(--border-color); justify-content: space-between; }
+        
+        #display-info { color: #ff9900; font-weight: bold; white-space: nowrap; }
+        #title-display { color: var(--pea-green); font-weight: 900; font-size: 18px; text-transform: uppercase; text-align: center; flex-grow: 1; margin: 0 5px 0 20px; }
+        #powered-by { color: #888; font-size: 11px; white-space: nowrap; }
+        #latency-meter { color: #00ff00; font-size: 12px; margin-left: 10px; }
+        
+        .main-container { display: flex; flex-grow: 1; padding: 15px; gap: 15px; }
+        
+        .left-panel, .right-panel { flex: 1; display: flex; flex-direction: column; background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; }
+        
+        #chat-log { height: 200px; overflow-y: auto; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 4px; background: #000000; font-size: 14px; white-space: pre-wrap; }
+        
+        #prompt-input { width: 100%; height: 80px; padding: 12px; border: 1px solid var(--border-color); border-radius: 4px; resize: none; background: #000000; color: #ffffff; }
+        
+        #sandbox-container { flex-grow: 1; min-height: 200px; display: flex; flex-direction: column; margin-top: 15px; }
+        #sandbox-runner { flex-grow: 1; background: #000000; color: #00ff00; padding: 12px; border: 1px solid var(--border-color); border-radius: 4px; font-family: var(--font-mono); font-size: 12px; white-space: pre-wrap; }
+        
+        /* Updated Canvas styling to be fixed size with internal scrolling */
+        #canvas { height: 400px; padding: 15px; overflow-y: auto; white-space: pre-wrap; font-family: var(--font-mono); font-size: 13px; color: var(--text-color); border: 1px solid var(--border-color); background: #000000; }
+        
+        button { cursor: pointer; background: var(--button-blue); border: none; color: #ffffff; padding: 8px 16px; border-radius: 4px; font-size: 12px; font-weight: bold; transition: opacity 0.2s; }
+        button:hover { opacity: 0.8; }
+        
+        .controls { padding: 10px 0; display: flex; gap: 10px; flex-wrap: wrap; }
+        .llm-msg { border-bottom: 1px solid var(--border-color); margin-bottom: 15px; padding-bottom: 10px; }
+        .meta { font-size: 9px; color: #888; margin-top: 5px; text-transform: uppercase; }
+
+        #cmd-palette { position: fixed; top: 20%; left: 30%; width: 40%; background: #222; padding: 20px; display: none; border: 1px solid var(--border-color); border-radius: 8px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+    <div id="status-bar">
+        <span id="display-info">Loading...</span>
+        <span id="title-display">CEPHALOPODAI | Intelligent Design | LLM Interface</span>
+        <span id="powered-by">Powered by Gemma 4:e2b</span>
+        <span id="latency-meter">Latency: 0ms</span>
+    </div>
+    <div class="main-container">
+        <div class="left-panel">
+            <div id="chat-log">system:<br>CephalopodAI Console online :</div>
+            <textarea id="prompt-input" placeholder="Type here..."></textarea>
+            <div class="controls">
+                <button id="send-button">Transmit</button>
+                <button onclick="runNetSearch()">Net Search</button>
+                <button onclick="clearBox('chat-log')">Clear Chat</button>
+                <button onclick="saveSession()">Save Session</button>
+                <button onclick="loadSession()">Load Session</button>
+            </div>
+            <div id="sandbox-container">
+                <div id="sandbox-runner" contenteditable="true" ondrop="handleDrop(event, 'sandbox-runner')" ondragover="allowDrop(event)"></div>
+                <div class="controls">
+                    <button onclick="runSandbox()">Run Code</button>
+                    <button onclick="clearBox('sandbox-runner')">Clear</button>
+                </div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div id="canvas" contenteditable="true" ondrop="handleDrop(event, 'canvas')" ondragover="allowDrop(event)"></div>
+            <div class="controls">
+                <button onclick="sendCanvasToPrompt()">Send Canvas to Prompt</button>
+                <button onclick="saveCanvas()">Save Canvas</button>
+                <button onclick="saveSnippet()">Save to Memory</button>
+                <button onclick="clearCanvas()">Clear Canvas</button>
+            </div>
+            <div id="live-preview-container" style="width:100%; min-height:200px; height:200px; background:white; margin-top:10px; border:1px solid #333; resize: vertical; overflow: auto; position: relative;">
+                <iframe id="live-preview" style="width:100%; height:100%; border:none; background:white; display:block;"></iframe>
+            </div>
+            <div class="controls">
+                <button onclick="clearBox('live-preview')">Clear Sandbox</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cmd-palette">
+        <h3>Command Palette (Ctrl+K to close)</h3>
+        <input type="text" id="cmd-input" style="width:100%; background:#000; color:#fff; border:1px solid #444; padding:10px;" placeholder="/clear, /save, /search...">
+    </div>
+
+    <script>
+        const OLLAMA_CHAT_URL = 'http://localhost:11434/api/chat';
+        const TOOL_SERVER_URL = 'http://localhost:3001/tool';
+        let messageHistory = [{ role: 'system', content: 'CephalopodAI Console online :' }];
+        let totalTokens = 0;
+        let startTime;
+
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'k') {
+                const palette = document.getElementById('cmd-palette');
+                palette.style.display = palette.style.display === 'block' ? 'none' : 'block';
+            }
+        });
+
+        // Fixed: Restore saveCanvas function
+        function saveCanvas() {
+            const content = document.getElementById('canvas').innerText;
+            const blob = new Blob([content], {type: "text/plain"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "canvas_export.txt";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function saveSnippet() {
+            const content = document.getElementById('canvas').innerText;
+            localStorage.setItem('snippet_' + Date.now(), content);
+            appendToChat('system', 'Snippet saved to local memory.');
+        }
+
+        function runSandbox() {
+            const code = document.getElementById('sandbox-runner').innerText;
+            const iframe = document.getElementById('live-preview');
+            iframe.srcdoc = code;
+
+            iframe.onload = function() {
+                try {
+                    const container = document.getElementById('live-preview-container');
+                    const contentHeight = iframe.contentDocument ? iframe.contentDocument.body.scrollHeight : iframe.contentWindow.document.body.scrollHeight;
+                    if (contentHeight && contentHeight > 200) {
+                        container.style.height = (contentHeight + 30) + 'px';
+                    }
+                } catch (e) {
+                }
+            };
+        }
+
+        function updateLatency(ms) {
+            document.getElementById('latency-meter').innerText = `Latency: ${ms}ms`;
+        }
+
+        function appendToChat(role, text) {
+            const chatLog = document.getElementById('chat-log');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = role === 'llm' ? 'llm-msg' : '';
+            const label = document.createElement('strong');
+            label.textContent = role + ':';
+            msgDiv.appendChild(label);
+            msgDiv.appendChild(document.createElement('br'));
+            const content = document.createElement('span');
+            content.textContent = text;
+            msgDiv.appendChild(content);
+            if (role === 'llm' || role === 'system_data') {
+                const meta = document.createElement('div');
+                meta.className = 'meta';
+                meta.innerHTML = `${new Date().toLocaleTimeString()} `;
+                const btn = document.createElement('button');
+                btn.textContent = 'Send to Canvas';
+                btn.onclick = () => sendToCanvas(text);
+                meta.appendChild(btn);
+                msgDiv.appendChild(meta);
+            }
+            chatLog.appendChild(msgDiv);
+            chatLog.scrollTop = chatLog.scrollHeight;
+            return msgDiv;
+        }
+
+        function updateStatusBar() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const timeStr = now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
+            document.getElementById('display-info').innerText = `${dateStr} | ${timeStr} | Tokens: ${totalTokens}`;
+        }
+        setInterval(updateStatusBar, 1000);
+
+        async function saveSession() {
+            const title = prompt("Enter Session Title:", "My_Session");
+            if (!title) return;
+            const sessionData = { title, messageHistory, totalTokens, timestamp: new Date().toISOString() };
+            const blob = new Blob([JSON.stringify(sessionData, null, 2)], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${title.replace(/[^a-z0-9]/gi, '_')}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        async function loadSession() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = async e => {
+                const reader = new FileReader();
+                reader.onload = async event => {
+                    const data = JSON.parse(event.target.result);
+                    document.getElementById('chat-log').innerHTML = '';
+                    messageHistory = data.messageHistory;
+                    totalTokens = data.totalTokens;
+                    appendToChat('system', 'Session restored.');
+                };
+                reader.readAsText(e.target.files[0]);
+            };
+            input.click();
+        }
+
+        async function handleDrop(e, targetId) {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                if (targetId === 'chat-log') appendToChat('user', event.target.result);
+                else document.getElementById(targetId).innerText = event.target.result;
+            };
+            reader.readAsText(file);
+        }
+
+        function allowDrop(e) { e.preventDefault(); }
+
+        function clearBox(id) { 
+            if(id === 'live-preview') { 
+                document.getElementById(id).srcdoc = ''; 
+                document.getElementById('live-preview-container').style.height = '200px'; 
+            }
+            else { document.getElementById(id).innerText = ''; } 
+        }
+        function clearCanvas() { document.getElementById('canvas').innerText = ''; }
+        function sendToCanvas(text) { document.getElementById('canvas').innerText += "\n\n--- Log ---\n" + text; }
+        function sendCanvasToPrompt() { const canvasText = document.getElementById('canvas').innerText; if (!canvasText) return; document.getElementById('prompt-input').value = canvasText; }
+
+        async function runNetSearch() {
+            const query = document.getElementById('prompt-input').value.trim();
+            if (!query) return;
+            startTime = performance.now();
+            appendToChat('system', 'Searching: ' + query + '...');
+            try {
+                const res = await fetch(TOOL_SERVER_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ query })
+                });
+                const data = await res.json();
+                updateLatency(Math.round(performance.now() - startTime));
+                appendToChat('system_data', data.result || "No results found.");
+            } catch (err) { appendToChat('system error', err.message); }
+        }
+
+        document.getElementById('send-button').addEventListener('click', async () => {
+            const input = document.getElementById('prompt-input');
+            const promptText = input.value.trim();
+            if (!promptText) return;
+            startTime = performance.now();
+            appendToChat('user', promptText);
+            input.value = '';
+            try {
+                const payload = { model: 'gemma4:e2b', messages: [...messageHistory, {role: 'user', content: promptText}], stream: false };
+                const res = await fetch(OLLAMA_CHAT_URL, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                updateLatency(Math.round(performance.now() - startTime));
+                
+                const pTokens = data.prompt_eval_count || 0;
+                const rTokens = data.eval_count || 0;
+                totalTokens += (pTokens + rTokens);
+                
+                const reply = data.message.content;
+                appendToChat('llm', reply);
+                messageHistory.push({role: 'user', content: promptText}, {role: 'assistant', content: reply});
+            } catch (err) { appendToChat('system error', err.message); }
+        });
+    </script>
+</body>
+</html>
